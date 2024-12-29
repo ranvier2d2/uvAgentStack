@@ -44,14 +44,7 @@ def init_project_builder(
     slug_name: Optional[str] = None,
     template: Optional[str] = None,
     use_wizard: bool = False,
-) -> None:
-    """Initialize a new AgentStack project.
-
-    Args:
-        slug_name: Optional name for the project (in snake_case)
-        template: Optional template to use
-        use_wizard: Whether to use the interactive wizard
-    """
+):
     if not slug_name and not use_wizard:
         print(term_color("Project name is required. Use `agentstack init <project_name>`", 'red'))
         return
@@ -125,11 +118,35 @@ def init_project_builder(
     log.debug(f"project_details: {project_details}" f"framework: {framework}" f"design: {design}")
     insert_template(project_details, framework, design, template_data)
 
-    # we have an agentstack.json file in the directory now
+    # Set project path in configuration
     conf.set_path(project_details['name'])
 
-    for tool_data in tools:
-        generation.add_tool(tool_data['name'], agents=tool_data['agents'])
+    # Add tools if specified
+    if tools:
+        for tool_data in tools:
+            generation.add_tool(tool_data['name'], agents=tool_data['agents'])
+
+    print(
+        "\n"
+        "🚀 \033[92mAgentStack project generated successfully!\033[0m\n\n"
+        "  Next steps:\n\n"
+        "  1. Create a development environment:\n"
+        f"    cd {os.getcwd()}\n"
+        "    uv venv\n"
+        "    source .venv/bin/activate\n"
+        f'    uv pip install -e "{os.getcwd()}[dev]"\n\n'
+        "  3. Navigate to your project:\n"
+        f"    cd {project_details['name']}\n\n"
+        "  4. Create and activate project environment:\n"
+        "    uv venv\n"
+        "    source .venv/bin/activate\n\n"
+        "  4. Lock and Install project dependencies:\n"
+        "    uv lock\n"
+        "    uv sync\n\n"
+        "  6. Try running your agent:\n"
+        "    agentstack run\n\n"
+        "  Run `agentstack quickstart` or `agentstack docs` for next steps.\n"
+    )
 
 
 def welcome_message():
@@ -442,29 +459,6 @@ def insert_template(
     # os.system("poetry install")
     # os.system("cls" if os.name == "nt" else "clear")
     # TODO: add `agentstack docs` command
-    print(
-        "\n"
-        "🚀 \033[92mAgentStack project generated successfully!\033[0m\n\n"
-        "  Next steps:\n\n"
-        "  1. Create a development environment:\n"
-        "    cd /Users/bastiannisnaciovenegasarevalo/uvAsTackCloneT-2/actualCustomRepo/uvAgentStack\n"
-        "    uv venv\n"
-        "    source .venv/bin/activate\n"
-        "    uv pip install -e '.[dev]'\n\n"
-        "  2. Install AgentStack globally:\n"
-        "    uv tool install -e /Users/bastiannisnaciovenegasarevalo/uvAsTackCloneT-2/actualCustomRepo/uvAgentStack\n"
-        "    export PATH=\"$HOME/.local/bin:$PATH\"\n\n"
-        f"  3. Navigate to your project:\n"
-        f"    cd {project_metadata.project_slug}\n\n"
-        "  4. Create and activate project environment:\n"
-        "    uv venv\n"
-        "    source .venv/bin/activate\n\n"
-        "  5. Install project dependencies:\n"
-        "    uv sync\n\n"
-        "  6. Try running your agent:\n"
-        "    agentstack run\n\n"
-        "  Run `agentstack quickstart` or `agentstack docs` for next steps.\n"
-    )
 
 
 def export_template(output_filename: str):

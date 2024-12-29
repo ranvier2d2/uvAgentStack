@@ -143,31 +143,32 @@ def main():
 
     update = subparsers.add_parser('update', aliases=['u'], help='Check for updates', parents=[global_parser])
 
-    # Parse args
-    args = parser.parse_args()
+    # Parse known args and store unknown args in extras; some commands use them later on
+    args, extra_args = parser.parse_known_args()
 
     # Set the project path from --path if it is provided in the global_parser
     conf.set_path(args.project_path)
 
+    # Handle version
+    if args.version:
+        print(f"AgentStack CLI version: {get_version()}")
+        sys.exit(0)
+
+    telemetry_id = track_cli_command(args.command, " ".join(sys.argv[1:]))
+    check_for_updates(update_requested=args.command in ('update', 'u'))
+
+    # Handle commands
     try:
-        if args.version:
-            version = get_version()
-            print(f"AgentStack CLI version {version}")
-            check_for_updates()
-        elif args.command in ["docs"]:
-            webbrowser.open("https://docs.agentstack.sh")
+        if args.command in ["docs"]:
+            webbrowser.open("https://docs.agentstack.sh/")
         elif args.command in ["quickstart"]:
             webbrowser.open("https://docs.agentstack.sh/quickstart")
         elif args.command in ["templates"]:
             webbrowser.open("https://docs.agentstack.sh/quickstart")
         elif args.command in ["init", "i"]:
-            init_project_builder(
-                slug_name=args.slug_name,
-                template=args.template,
-                use_wizard=args.wizard,
-            )
+            init_project_builder(args.slug_name, args.template, args.wizard)
         elif args.command in ["run", "r"]:
-            run_project(command=args.function, debug=args.debug)
+            run_project(command=args.function, debug=args.debug, cli_args=extra_args)
         elif args.command in ['generate', 'g']:
             if args.generate_command in ['agent', 'a']:
                 if not args.llm:
@@ -197,13 +198,11 @@ def main():
         else:
             parser.print_help()
     except Exception as e:
-        telemetry_id = track_cli_command(args.command, " ".join(sys.argv[1:]))
         update_telemetry(telemetry_id, result=1, message=str(e))
         print(term_color("An error occurred while running your AgentStack command:", "red"))
         print(e)
         sys.exit(1)
 
-    telemetry_id = track_cli_command(args.command, " ".join(sys.argv[1:]))
     update_telemetry(telemetry_id, result=0)
 
 
