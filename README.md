@@ -20,10 +20,19 @@ AgentStack is _not_ a low-code alternative to development. Developers will still
 ## Quick Overview
 
 ```sh
-pip install agentstack
+# Install UV package manager
+pip install uv
+
+# Create a development environment
+uv venv
+source .venv/bin/activate
+
+# Install AgentStack
+uv pip install agentstack
+
+# Create your project
 agentstack init <project_name>
 ```
-
 
 <p align='center'>
 <img src='https://raw.githubusercontent.com/agentops-ai/agentstack/main/stack.png' width='600' alt='agentstack init'>
@@ -40,21 +49,46 @@ Create a project, and you're good to go.
 
 **You'll need to have Python 3.10+ on your local development machine**. We recommend using the latest version. You can use [pyenv](https://github.com/pyenv/pyenv) to switch Python versions between different projects.
 
-To create a new agent project, run:
+To create a new agent project:
 
+1. First, install and set up UV:
 ```sh
-pip install agentstack
+pip install uv
+uv venv
+source .venv/bin/activate
+```
+
+2. Install AgentStack:
+```sh
+uv pip install agentstack
+```
+
+3. Create your project:
+```sh
 agentstack init <project_name>
 ```
 
 It will create a directory with your project name inside the current folder.<br>
-Inside that directory, it will generate the initial project structure and install the transitive dependencies.
+Inside that directory, it will generate the initial project structure and create a new virtual environment.
 
 No configuration or complicated folder structures, only the files you need to build your agent project.<br>
-Once the initialization is done, you can open your project folder:
+Once the initialization is done, you can follow the setup instructions to get your project running:
 
+1. Navigate to your project:
 ```sh
-cd <your_agent_project>
+cd <project_name>
+```
+
+2. Create and activate project environment:
+```sh
+uv venv
+source .venv/bin/activate
+```
+
+3. Lock and Install project dependencies:
+```sh
+uv lock
+uv sync
 ```
 
 ### Templates
