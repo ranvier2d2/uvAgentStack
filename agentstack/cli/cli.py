@@ -135,9 +135,6 @@ def init_project_builder(
     # Set project path in configuration
     conf.set_path(project_details['name'])
 
-    # Get the path to our custom AgentStack installation
-    agentstack_path = "/Users/bastiannisnaciovenegasarevalo/uvAsTackCloneT-2/actualCustomRepo/uvAgentStack"
-
     print(
         "\n"
         "🚀 AgentStack project generated successfully!\n\n"
@@ -147,8 +144,7 @@ def init_project_builder(
         "2. Create and activate a virtual environment:\n"
         "    uv venv\n"
         "    source .venv/bin/activate\n\n"
-        "3. Install AgentStack and project dependencies:\n"
-        f"    uv pip install -e {agentstack_path}\n"
+        "3. Install project dependencies:\n"
         "    uv sync\n\n"
         "4. Try running your agent:\n"
         "    agentstack run\n\n"

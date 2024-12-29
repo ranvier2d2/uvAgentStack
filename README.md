@@ -22,16 +22,18 @@ AgentStack is _not_ a low-code alternative to development. Developers will still
 Assuming you're in your project folder (e.g., `TestFolder`) and have UV installed:
 
 ```sh
-# Create and activate virtual environment
-uv venv
-source .venv/bin/activate
-
-# Install AgentStack from local repository
-uv pip install -e /Users/bastiannisnaciovenegasarevalo/uvAsTackCloneT-2/actualCustomRepo/uvAgentStack
+# Install AgentStack globally from local repository
+pip install -e /Users/bastiannisnaciovenegasarevalo/uvAsTackCloneT-2/actualCustomRepo/uvAgentStack
 
 # Create a new AgentStack project
 agentstack init myproject
 cd myproject
+
+# Create and activate virtual environment
+uv venv
+source .venv/bin/activate  # On Unix/macOS
+# or
+# .venv\Scripts\activate  # On Windows
 
 # Install project dependencies
 uv sync
@@ -62,21 +64,23 @@ pip install uv
 
 Once UV is installed, here's how to create a new project:
 
-1. Create and activate a virtual environment:
+1. Install AgentStack globally from the local repository:
 ```sh
-uv venv
-source .venv/bin/activate
+pip install -e /Users/bastiannisnaciovenegasarevalo/uvAsTackCloneT-2/actualCustomRepo/uvAgentStack
 ```
 
-2. Install AgentStack from the local repository:
-```sh
-uv pip install -e /Users/bastiannisnaciovenegasarevalo/uvAsTackCloneT-2/actualCustomRepo/uvAgentStack
-```
-
-3. Create your AgentStack project:
+2. Create your AgentStack project:
 ```sh
 agentstack init myproject
 cd myproject
+```
+
+3. Set up your project environment:
+```sh
+uv venv
+source .venv/bin/activate  # On Unix/macOS
+# or
+# .venv\Scripts\activate  # On Windows
 ```
 
 4. Install project dependencies:
