@@ -19,20 +19,24 @@ AgentStack is _not_ a low-code alternative to development. Developers will still
 
 ## Quick Overview
 
-Assuming you're in your project folder (e.g., `TestFolder`) and have UV installed:
+First, set up the development environment:
 
 ```sh
-# Install AgentStack globally using UV's tool management
-uv tool install -e /Users/bastiannisnaciovenegasarevalo/uvAsTackCloneT-2/actualCustomRepo/uvAgentStack
+# Create development environment
+cd /Users/bastiannisnaciovenegasarevalo/uvAsTackCloneT-2/actualCustomRepo/uvAgentStack
+uv venv
+source .venv/bin/activate
+uv pip install -e '.[dev]'
 
-# Make sure UV's bin directory is in your PATH
-uv tool update-shell
+# Install AgentStack globally
+uv tool install -e /Users/bastiannisnaciovenegasarevalo/uvAsTackCloneT-2/actualCustomRepo/uvAgentStack
+export PATH="$HOME/.local/bin:$PATH"
 
 # Create a new AgentStack project
 agentstack init myproject
 cd myproject
 
-# Create and activate virtual environment
+# Create and activate project environment
 uv venv
 source .venv/bin/activate  # On Unix/macOS
 # or
@@ -67,19 +71,28 @@ pip install uv
 
 Once UV is installed, here's how to create a new project:
 
-1. Install AgentStack globally using UV's tool management:
+1. Set up the development environment:
 ```sh
-uv tool install -e /Users/bastiannisnaciovenegasarevalo/uvAsTackCloneT-2/actualCustomRepo/uvAgentStack
-uv tool update-shell  # Add UV's bin directory to your PATH
+# Create development environment
+cd /Users/bastiannisnaciovenegasarevalo/uvAsTackCloneT-2/actualCustomRepo/uvAgentStack
+uv venv
+source .venv/bin/activate
+uv pip install -e '.[dev]'
 ```
 
-2. Create your AgentStack project:
+2. Install AgentStack globally:
+```sh
+uv tool install -e /Users/bastiannisnaciovenegasarevalo/uvAsTackCloneT-2/actualCustomRepo/uvAgentStack
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+3. Create your AgentStack project:
 ```sh
 agentstack init myproject
 cd myproject
 ```
 
-3. Set up your project environment:
+4. Set up your project environment:
 ```sh
 uv venv
 source .venv/bin/activate  # On Unix/macOS
@@ -87,7 +100,7 @@ source .venv/bin/activate  # On Unix/macOS
 # .venv\Scripts\activate  # On Windows
 ```
 
-4. Install project dependencies:
+5. Install project dependencies:
 ```sh
 uv sync
 ```
