@@ -27,8 +27,8 @@ pip install uv
 uv venv
 source .venv/bin/activate
 
-# Install AgentStack
-uv pip install agentstack
+# Install AgentStack in development mode
+uv pip install -e "/Users/bastiannisnaciovenegasarevalo/uvAsTackCloneT-2/actualCustomRepo/uvAgentStack[dev]"
 
 # Create your project
 agentstack init <project_name>
@@ -58,9 +58,9 @@ uv venv
 source .venv/bin/activate
 ```
 
-2. Install AgentStack:
+2. Install AgentStack in development mode:
 ```sh
-uv pip install agentstack
+uv pip install -e "/Users/bastiannisnaciovenegasarevalo/uvAsTackCloneT-2/actualCustomRepo/uvAgentStack[dev]"
 ```
 
 3. Create your project:

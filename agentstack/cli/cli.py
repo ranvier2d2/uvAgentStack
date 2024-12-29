@@ -130,24 +130,18 @@ def init_project_builder(
         "\n"
         "🚀 \033[92mAgentStack project generated successfully!\033[0m\n\n"
         "  Next steps:\n\n"
-        "  1. Create a development environment:\n"
-        f"    cd {os.getcwd()}\n"
-        "    uv venv\n"
-        "    source .venv/bin/activate\n"
-        f'    uv pip install -e "{os.getcwd()}[dev]"\n\n'
-        "  3. Navigate to your project:\n"
+        "  1. Navigate to your project:\n"
         f"    cd {project_details['name']}\n\n"
-        "  4. Create and activate project environment:\n"
+        "  2. Create and activate project environment:\n"
         "    uv venv\n"
         "    source .venv/bin/activate\n\n"
-        "  4. Lock and Install project dependencies:\n"
+        "  3. Lock and Install project dependencies:\n"
         "    uv lock\n"
         "    uv sync\n\n"
-        "  6. Try running your agent:\n"
+        "  4. Try running your agent:\n"
         "    uv run agentstack run\n\n"
-        "  Run `agentstack quickstart` or `agentstack docs` for next steps.\n"
+        "  Run `uv run agentstack quickstart` or `uv runagentstack docs` for next steps.\n"
     )
-
 
 def welcome_message():
     os.system("cls" if os.name == "nt" else "clear")
