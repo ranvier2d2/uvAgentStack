@@ -19,11 +19,26 @@ AgentStack is _not_ a low-code alternative to development. Developers will still
 
 ## Quick Overview
 
-```sh
-pip install agentstack
-agentstack init <project_name>
-```
+Assuming you're in your project folder (e.g., `TestFolder`) and have UV installed:
 
+```sh
+# Create and activate virtual environment
+uv venv
+source .venv/bin/activate
+
+# Install AgentStack from local repository
+uv pip install -e /Users/bastiannisnaciovenegasarevalo/uvAsTackCloneT-2/actualCustomRepo/uvAgentStack
+
+# Create a new AgentStack project
+agentstack init myproject
+cd myproject
+
+# Install project dependencies
+uv sync
+
+# Run your agent
+agentstack run
+```
 
 <p align='center'>
 <img src='https://raw.githubusercontent.com/agentops-ai/agentstack/main/stack.png' width='600' alt='agentstack init'>
@@ -38,24 +53,43 @@ Create a project, and you're good to go.
 
 ## Creating an Agent Project
 
-**You'll need to have Python 3.10+ on your local development machine**. We recommend using the latest version. You can use [pyenv](https://github.com/pyenv/pyenv) to switch Python versions between different projects.
+**You'll need to have Python 3.10+ and UV installed** on your local development machine. We recommend using the latest version of Python. You can use [pyenv](https://github.com/pyenv/pyenv) to switch Python versions between different projects.
 
-To create a new agent project, run:
-
+If you don't have UV installed yet:
 ```sh
-pip install agentstack
-agentstack init <project_name>
+pip install uv
 ```
 
-It will create a directory with your project name inside the current folder.<br>
-Inside that directory, it will generate the initial project structure and install the transitive dependencies.
+Once UV is installed, here's how to create a new project:
 
-No configuration or complicated folder structures, only the files you need to build your agent project.<br>
-Once the initialization is done, you can open your project folder:
-
+1. Create and activate a virtual environment:
 ```sh
-cd <your_agent_project>
+uv venv
+source .venv/bin/activate
 ```
+
+2. Install AgentStack from the local repository:
+```sh
+uv pip install -e /Users/bastiannisnaciovenegasarevalo/uvAsTackCloneT-2/actualCustomRepo/uvAgentStack
+```
+
+3. Create your AgentStack project:
+```sh
+agentstack init myproject
+cd myproject
+```
+
+4. Install project dependencies:
+```sh
+uv sync
+```
+
+That's it! Your project is ready to run:
+```sh
+agentstack run
+```
+
+UV will automatically manage your project's dependencies through the pyproject.toml file. The lockfile (`uv.lock`) will track exact dependency versions for reproducible builds.
 
 ### Templates
 Additionally, pre-built templates are available as a shortcut to building your project. [View the available templates]().

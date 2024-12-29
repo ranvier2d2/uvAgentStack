@@ -135,62 +135,23 @@ def init_project_builder(
     # Set project path in configuration
     conf.set_path(project_details['name'])
 
-    # After project generation, check environment and UV
-    current_venv = os.environ.get('VIRTUAL_ENV')
-    has_uv = False
-    try:
-        subprocess.run(["uv", "--version"], capture_output=True, check=True)
-        has_uv = True
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        pass
-
     # Get the path to our custom AgentStack installation
-    agentstack_path = "/Users/bastiannisnaciovenegasarevalo/AgentStackwoSpacesv2short/AgentStack"
+    agentstack_path = "/Users/bastiannisnaciovenegasarevalo/uvAsTackCloneT-2/actualCustomRepo/uvAgentStack"
 
     print(
         "\n"
-        "AgentStack project generated successfully!\n\n"
-        "  Next steps:\n"
+        "🚀 AgentStack project generated successfully!\n\n"
+        "Next steps:\n\n"
+        f"1. Navigate to your project:\n"
         f"    cd {project_details['name']}\n\n"
-    )
-
-    if current_venv:
-        print(
-            "You're currently in a virtual environment. To set up your project:\n\n"
-            "1. First deactivate your current environment:\n"
-            "    deactivate\n\n"
-            f"2. Navigate to your project and create a new environment:\n"
-            f"    cd {project_details['name']}\n"
-            "    uv venv\n"
-            "    source .venv/bin/activate\n\n"
-            "3. Install dependencies:\n"
-            f"    uv pip install -e {agentstack_path}\n"
-            "    uv sync  # This will install project dependencies from pyproject.toml\n"
-        )
-    else:
-        print(
-            "To set up your project environment:\n\n"
-            f"1. Navigate to your project:\n"
-            f"    cd {project_details['name']}\n\n"
-            "2. Create and activate a virtual environment:\n"
-            "    uv venv\n"
-            "    source .venv/bin/activate\n\n"
-            "3. Install dependencies:\n"
-            f"    uv pip install -e {agentstack_path}\n"
-            "    uv sync  # This will install project dependencies from pyproject.toml\n"
-        )
-
-    if not has_uv:
-        print(
-            "\nNote: UV is not installed. Install it first with:\n"
-            "    pip install uv\n"
-        )
-
-    print(
-        "\nOnce your environment is set up, you can:\n"
-        "    agentstack generate agent <agent_name>  # Create a new agent\n"
-        "    agentstack generate task <task_name>    # Create a new task\n"
-        "    agentstack run                         # Run your agent\n\n"
+        "2. Create and activate a virtual environment:\n"
+        "    uv venv\n"
+        "    source .venv/bin/activate\n\n"
+        "3. Install AgentStack and project dependencies:\n"
+        f"    uv pip install -e {agentstack_path}\n"
+        "    uv sync\n\n"
+        "4. Try running your agent:\n"
+        "    agentstack run\n\n"
         "Run `agentstack quickstart` or `agentstack docs` for next steps.\n"
     )
 
