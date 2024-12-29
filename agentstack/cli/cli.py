@@ -121,12 +121,6 @@ def init_project_builder(
     # Set project path in configuration
     conf.set_path(project_details['name'])
 
-    # Initialize UV lock and sync in the project directory
-    os.chdir(project_details['name'])
-    os.system("uv lock")
-    os.system("uv sync")
-    os.chdir('..')
-
     # Add tools if specified
     if tools:
         for tool_data in tools:
@@ -137,7 +131,7 @@ def init_project_builder(
         "🚀 \033[92mAgentStack project generated successfully!\033[0m\n\n"
         "  Next steps:\n"
         f"    cd {project_details['name']}\n\n"
-        "  Make sure you have UV installed:\n"
+        "  Make sure you have UV installed. This handles the project's dependencies:\n"
         "    pip install uv\n\n"
         "  Create and activate virtual environment:\n"
         "    uv venv\n"
@@ -145,10 +139,15 @@ def init_project_builder(
         "  Initialize UV and install dependencies:\n"
         "    uv lock\n"
         "    uv sync\n"
-        "    uv pip install -e .\n\n"
+        #"    uv pip install -e .\n\n"
+        "  You can create a new agent with:\n"
+        "    agentstack generate agent <agent_name>\n\n"
+        "  You can create a new task with:\n"
+        "    agentstack generate task <task_name>\n\n"
         "  Finally, try running your agent with:\n"
         "    agentstack run\n\n"
         "  Run `agentstack quickstart` or `agentstack docs` for next steps.\n"
+ 
     )
 
 
