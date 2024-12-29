@@ -126,17 +126,11 @@ def init_project_builder(
     conf.set_path(project_details['name'])
 
     # Check virtual environment and UV status
-    in_conda = os.environ.get('CONDA_PREFIX') is not None
-    in_venv = os.environ.get('VIRTUAL_ENV') is not None
+    env_type, uv_installed, uv_version = check_environment()
     
     # Check if UV is installed
-    has_uv = False
-    try:
-        subprocess.run(["uv", "--version"], capture_output=True, check=True)
-        has_uv = True
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        pass
-
+    has_uv = uv_installed
+    
     # Add tools if specified
     if tools:
         for tool_data in tools:
@@ -150,7 +144,7 @@ def init_project_builder(
     )
 
     if has_uv:
-        if in_venv:
+        if env_type:
             print("\nI notice you're currently in a virtual environment.")
             auto_handle = inquirer.confirm(
                 message="Would you like me to automatically set up a new environment for this project?",
@@ -164,62 +158,47 @@ def init_project_builder(
 To set up manually:
     deactivate  # Leave current environment
     cd {project_details['name']}
-    uv venv agentstackvenv_{project_details['name']}
-    source agentstackvenv_{project_details['name']}/bin/activate
-    uv lock
-    uv sync
+    uv install
 """)
         else:
             print("Setting up new virtual environment for your project...")
             os.chdir(project_details['name'])
             try:
-                venv_name = f"agentstackvenv_{project_details['name']}"
-                subprocess.run(["uv", "venv", venv_name], check=True)
-                subprocess.run(["uv", "lock"], check=True)
-                subprocess.run(["uv", "sync"], check=True)
-                os.chdir('..')
+                subprocess.run(["uv", "install"], check=True)
                 print(
                     "Dependencies installed successfully!\n"
                     "To activate your project environment:\n"
                     f"    cd {project_details['name']}\n"
-                    f"    source {venv_name}/bin/activate\n"
                 )
             except subprocess.CalledProcessError:
                 os.chdir('..')
                 print(
                     "Failed to set up environment. To set up manually:\n"
                     f"    cd {project_details['name']}\n"
-                    "    uv venv\n"
-                    "    source .venv/bin/activate\n"
-                    "    uv lock\n"
-                    "    uv sync\n"
+                    "    uv install\n"
                 )
-    elif in_conda:
+    elif env_type == 'conda':
         print(
             "Conda environment detected!\n"
             "You can use UV directly in your conda environment:\n"
             "    pip install uv\n"
-            "    uv lock\n"
-            "    uv sync\n\n"
+            "    uv install\n\n"
         )
-    elif in_venv:
+    elif env_type == 'venv':
         print(
             "Virtual environment detected!\n"
             "Install UV to handle dependencies:\n"
             "    pip install uv\n"
-            "    uv lock\n"
-            "    uv sync\n\n"
+            "    uv install\n\n"
         )
     else:
         print(
             "Make sure you have UV installed. This handles the project's dependencies:\n"
             "    pip install uv\n\n"
             "Create and activate virtual environment:\n"
-            "    uv venv\n"
-            "    source .venv/bin/activate\n\n"
+            "    uv install\n\n"
             "Initialize UV and install dependencies:\n"
-            "    uv lock\n"
-            "    uv sync\n"
+            "    uv install\n"
         )
 
     print(
@@ -619,40 +598,139 @@ def export_template(output_filename: str):
         sys.exit(1)
 
 
-def handle_virtual_environment(project_name: str) -> None:
-    """Handle virtual environment setup for the project."""
-    print("\nI'll help you set up a new environment automatically! Here's what I'll do:\n")
-    print("1. Create a new environment named 'agentstackvenv_" + project_name + "'")
-    print("2. Install all dependencies\n")
+def check_environment():
+    """Check current environment status and UV installation."""
+    env_type = None
+    if os.environ.get('VIRTUAL_ENV'):
+        env_type = 'venv'
+    elif os.environ.get('CONDA_PREFIX'):
+        env_type = 'conda'
+    
+    try:
+        result = subprocess.run(['uv', '--version'], check=True, capture_output=True, text=True)
+        uv_version = result.stdout.strip()
+        return env_type, True, uv_version
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return env_type, False, None
 
-    print("Running commands:")
-    print("    cd " + project_name)
-    print("    uv venv agentstackvenv_" + project_name)
-    print("    uv lock")
-    print("    uv sync\n")
+def validate_environment(project_dir: str) -> bool:
+    """Validate environment integrity after creation."""
+    try:
+        venv_path = os.path.join(project_dir, '.venv')
+        if not os.path.exists(venv_path):
+            return False
+            
+        # Check UV installation in environment
+        result = subprocess.run(['uv', 'pip', 'check'],
+                              check=True,
+                              capture_output=True,
+                              text=True)
+        return 'No broken requirements found' in result.stdout
+    except subprocess.CalledProcessError:
+        return False
 
-    print("Note: After this completes, you'll need to activate the new environment with:")
-    print(f"    source agentstackvenv_{project_name}/bin/activate\n")
+def setup_project_dependencies(project_dir: str) -> bool:
+    """Set up project dependencies with proper isolation."""
+    try:
+        # Install with build isolation
+        subprocess.run(['uv', 'pip', 'install', '--use-pep517', '.'],
+                      check=True,
+                      timeout=300)
+        
+        # Generate lock file and requirements
+        subprocess.run(['uv', 'pip', 'compile', 'requirements.txt'],
+                      check=True,
+                      timeout=60)
+        
+        # Verify installation
+        subprocess.run(['uv', 'pip', 'check'],
+                      check=True,
+                      timeout=30)
+        return True
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
+        return False
+
+def handle_virtual_environment(project_name: str) -> bool:
+    """Handle virtual environment setup using UV."""
+    current_env, uv_installed, uv_version = check_environment()
+    
+    if current_env:
+        print(f"\nDetected active {current_env} environment. Please deactivate it first:")
+        print("    deactivate")
+        print("\nThen run agentstack init again.")
+        return False
+    
+    if not uv_installed:
+        print("\nUV is not installed. Please install it first:")
+        print("    pip install uv")
+        print("\nThen run agentstack init again.")
+        return False
+
+    current_dir = os.getcwd()
+    project_dir = os.path.join(current_dir, project_name)
+
+    print("\nSetting up project environment using UV. Here's what I'll do:\n")
+    print("1. Let UV automatically create a .venv directory")
+    print("2. Install project dependencies with build isolation")
+    print("3. Generate requirements.txt and lock file")
+    print("4. Validate environment integrity")
+    
+    print("\nRunning commands:")
+    print(f"    cd {project_name}")
+    print("    uv pip install --use-pep517 .")
+    print("    uv pip compile requirements.txt")
+    print("    uv pip check")
 
     try:
-        # Try to run the commands
-        os.chdir(project_name)
-        subprocess.run(['uv', 'venv', f'agentstackvenv_{project_name}'], check=True)
-        subprocess.run(['uv', 'lock'], check=True)
-        subprocess.run(['uv', 'sync'], check=True)
+        os.chdir(project_dir)
         
-        print(f"\nEnvironment setup complete! To start using it:")
-        print(f"1. First deactivate your current environment:")
-        print("    deactivate")
-        print(f"\n2. Then activate the new environment:")
-        print(f"    source agentstackvenv_{project_name}/bin/activate\n")
+        # Set up dependencies
+        if not setup_project_dependencies(project_dir):
+            print("\nFailed to set up project dependencies.")
+            _print_manual_setup_instructions(project_name)
+            return False
+            
+        # Validate environment
+        if not validate_environment(project_dir):
+            print("\nEnvironment validation failed.")
+            _print_manual_setup_instructions(project_name)
+            return False
         
-    except subprocess.CalledProcessError as e:
-        print("\nSomething went wrong:", str(e))
-        print("\nYou can set up the environment manually with these commands:")
-        print("    deactivate  # Leave current environment")
-        print("    cd " + project_name)
-        print("    uv venv agentstackvenv_" + project_name)
-        print("    source agentstackvenv_" + project_name + "/bin/activate")
-        print("    uv lock")
-        print("    uv sync\n")
+        print("\nEnvironment setup complete!")
+        print("\nTo start using your project:")
+        print("1. Navigate to your project directory:")
+        print(f"    cd {project_name}")
+        print("\n2. UV will automatically activate the environment when you run commands")
+        print("   You can also manually activate it with:")
+        if os.name == 'nt':
+            print("    .venv\\Scripts\\activate")
+        else:
+            print("    source .venv/bin/activate")
+        
+        print("\nNotes:")
+        print("- The virtual environment is in the .venv directory")
+        print("- A requirements.txt and lock file have been generated")
+        print("- All dependencies have been verified")
+        print("- UV will handle dependency management automatically")
+        return True
+            
+    except Exception as e:
+        print(f"\nUnexpected error during environment setup: {str(e)}")
+        _print_manual_setup_instructions(project_name)
+        return False
+    finally:
+        os.chdir(current_dir)
+
+def _print_manual_setup_instructions(project_name: str):
+    """Print instructions for manual environment setup."""
+    print("\nTo set up manually:")
+    print("1. Make sure no environment is active:")
+    print("    deactivate")
+    print(f"\n2. Navigate to your project:")
+    print(f"    cd {project_name}")
+    print("\n3. Install project with build isolation:")
+    print("    uv pip install --use-pep517 .")
+    print("\n4. Generate requirements and lock file:")
+    print("    uv pip compile requirements.txt")
+    print("\n5. Verify installation:")
+    print("    uv pip check")
