@@ -622,27 +622,31 @@ def export_template(output_filename: str):
 def handle_virtual_environment(project_name: str) -> None:
     """Handle virtual environment setup for the project."""
     print("\nI'll help you set up a new environment automatically! Here's what I'll do:\n")
-    print("1. Deactivate your current virtual environment")
-    print("2. Create a new environment named 'agentstackvenv_" + project_name + "'")
-    print("3. Activate the new environment")
-    print("4. Install all dependencies\n")
+    print("1. Create a new environment named 'agentstackvenv_" + project_name + "'")
+    print("2. Install all dependencies\n")
 
     print("Running commands:")
-    print("    deactivate")
     print("    cd " + project_name)
     print("    uv venv agentstackvenv_" + project_name)
-    print("    source agentstackvenv_" + project_name + "/bin/activate")
     print("    uv lock")
     print("    uv sync\n")
 
+    print("Note: After this completes, you'll need to activate the new environment with:")
+    print(f"    source agentstackvenv_{project_name}/bin/activate\n")
+
     try:
         # Try to run the commands
-        subprocess.run(['deactivate'], shell=True, check=True)
         os.chdir(project_name)
         subprocess.run(['uv', 'venv', f'agentstackvenv_{project_name}'], check=True)
-        subprocess.run(['source', f'agentstackvenv_{project_name}/bin/activate'], shell=True, check=True)
         subprocess.run(['uv', 'lock'], check=True)
         subprocess.run(['uv', 'sync'], check=True)
+        
+        print(f"\nEnvironment setup complete! To start using it:")
+        print(f"1. First deactivate your current environment:")
+        print("    deactivate")
+        print(f"\n2. Then activate the new environment:")
+        print(f"    source agentstackvenv_{project_name}/bin/activate\n")
+        
     except subprocess.CalledProcessError as e:
         print("\nSomething went wrong:", str(e))
         print("\nYou can set up the environment manually with these commands:")
