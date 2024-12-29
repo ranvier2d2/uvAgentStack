@@ -37,7 +37,6 @@ PREFERRED_MODELS = [
     'openai/o1-preview',
     'openai/gpt-4-turbo',
     'anthropic/claude-3-opus',
-    'azure/gpt-4o',
 ]
 
 
@@ -45,9 +44,8 @@ def init_project_builder(
     slug_name: Optional[str] = None,
     template: Optional[str] = None,
     use_wizard: bool = False,
-    migrate_crew: bool = False,
 ):
-    if not slug_name and not use_wizard and not migrate_crew:
+    if not slug_name and not use_wizard:
         print(term_color("Project name is required. Use `agentstack init <project_name>`", 'red'))
         return
 
@@ -55,12 +53,8 @@ def init_project_builder(
         print(term_color("Project name must be snake case", 'red'))
         return
 
-    if template is not None and (use_wizard or migrate_crew):
-        print(term_color("Template cannot be used with wizard or migrate flags", 'red'))
-        return
-
-    if use_wizard and migrate_crew:
-        print(term_color("Cannot use both wizard and migrate flags together", 'red'))
+    if template is not None and use_wizard:
+        print(term_color("Template and wizard flags cannot be used together", 'red'))
         return
 
     template_data = None
@@ -102,14 +96,6 @@ def init_project_builder(
         design = ask_design()
         tools = ask_tools()
 
-    elif migrate_crew:
-        welcome_message()
-        project_details = ask_project_details(slug_name)
-        welcome_message()
-        framework = ask_framework()
-        design = ask_migrate_crew()
-        tools = ask_tools()
-
     else:
         welcome_message()
         # the user has started a new project; let's give them something to work with
@@ -132,24 +118,11 @@ def init_project_builder(
     log.debug(f"project_details: {project_details}" f"framework: {framework}" f"design: {design}")
     insert_template(project_details, framework, design, template_data)
 
-    # Set project path in configuration
+    # we have an agentstack.json file in the directory now
     conf.set_path(project_details['name'])
 
-    print(
-        "\n"
-        "🚀 AgentStack project generated successfully!\n\n"
-        "Next steps:\n\n"
-        f"1. Navigate to your project:\n"
-        f"    cd {project_details['name']}\n\n"
-        "2. Create and activate a virtual environment:\n"
-        "    uv venv\n"
-        "    uv activate\n\n"
-        "3. Install project dependencies:\n"
-        "    uv sync\n\n"
-        "4. Try running your agent:\n"
-        "    agentstack run\n\n"
-        "Run `agentstack quickstart` or `agentstack docs` for next steps.\n"
-    )
+    for tool_data in tools:
+        generation.add_tool(tool_data['name'], agents=tool_data['agents'])
 
 
 def welcome_message():
@@ -296,7 +269,7 @@ def ask_design() -> dict:
     print(title)
 
     print("""
-Welcome to the agent builder wizard!!
+🪄 welcome to the agent builder wizard!! 🪄
 
 First we need to create the agents that will work together to accomplish tasks:
     """)
@@ -314,7 +287,7 @@ First we need to create the agents that will work together to accomplish tasks:
     for x in range(3):
         time.sleep(0.3)
         print('.')
-    print('Agents created!')
+    print('Boom! We made some agents (ﾉ>ω<)ﾉ :｡･:*:･ﾟ’★,｡･:*:･ﾟ’☆')
     time.sleep(0.5)
     print('')
     print('Now lets make some tasks for the agents to accomplish!')
@@ -333,90 +306,7 @@ First we need to create the agents that will work together to accomplish tasks:
     for x in range(3):
         time.sleep(0.3)
         print('.')
-    print('Tasks created!')
-
-    return {'tasks': tasks, 'agents': agents}
-
-
-def ask_migrate_crew() -> dict:
-    os.system("cls" if os.name == "nt" else "clear")
-    title = text2art("CrewAI Migration", font="shimrod")
-    print(title)
-
-    print("""
-Welcome to the CrewAI Migration Wizard! 
-
-This wizard will help you migrate your existing CrewAI project to AgentStack.
-We'll create placeholders for your agents and tasks - you'll just need to fill in your existing implementations.
-    """)
-
-    make_agent = True
-    agents = []
-    while make_agent:
-        print('---')
-        print(f"Agent #{len(agents)+1}")
-        agent = {}
-        
-        # Only ask for the name, provide placeholders for the rest
-        agent['name'] = get_validated_input(
-            "What's the name of this agent from your CrewAI project? (snake_case)", 
-            min_length=3, 
-            snake_case=True
-        )
-        
-        agent['role'] = "# Replace with your CrewAI agent's role:\n# Example: agent.role = 'Senior Data Analyst'"
-        agent['goal'] = "# Replace with your CrewAI agent's goal:\n# Example: agent.goal = 'Analyze and interpret complex data sets'"
-        agent['backstory'] = "# Replace with your CrewAI agent's backstory:\n# Example: agent.backstory = 'Expert in data analysis with 10 years of experience'"
-        agent['model'] = PREFERRED_MODELS[0]  # Default to first model, can be changed later
-        
-        agents.append(agent)
-        make_agent = inquirer.confirm(message="Add another agent from your CrewAI project?")
-
-    print('')
-    for x in range(3):
-        time.sleep(0.3)
-        print('.')
-    print('Agents structure created!')
-    print('')
-
-    make_task = True
-    tasks = []
-    while make_task:
-        print('---')
-        print(f"Task #{len(tasks) + 1}")
-        task = {}
-        
-        # Only ask for name and assigned agent
-        task['name'] = get_validated_input(
-            "What's the name of this task from your CrewAI project? (snake_case)", 
-            min_length=3, 
-            snake_case=True
-        )
-        
-        task['description'] = "# Replace with your CrewAI task's description:\n# Example: task.description = 'Analyze monthly sales data'"
-        task['expected_output'] = "# Replace with your CrewAI task's expected output:\n# Example: task.expected_output = 'A comprehensive sales analysis report'"
-        
-        task['agent'] = inquirer.list_input(
-            message="Which agent should be assigned this task?",
-            choices=[a['name'] for a in agents],
-        )
-        
-        tasks.append(task)
-        make_task = inquirer.confirm(message="Add another task from your CrewAI project?")
-
-    print('')
-    for x in range(3):
-        time.sleep(0.3)
-        print('.')
-    print('Migration structure created!')
-    
-    print("""
-Next Steps:
-1. Navigate to your project directory
-2. Find the generated agent and task files
-3. Replace the placeholder comments with your existing CrewAI implementations
-4. Run your migrated project with `agentstack run`
-    """)
+    print('Let there be tasks (ノ ˘_˘)ノ　ζ|||ζ　ζ|||ζ　ζ|||ζ')
 
     return {'tasks': tasks, 'agents': agents}
 
@@ -545,6 +435,23 @@ def insert_template(
     # os.system("poetry install")
     # os.system("cls" if os.name == "nt" else "clear")
     # TODO: add `agentstack docs` command
+    print(
+        "\n"
+        "🚀 \033[92mAgentStack project generated successfully!\033[0m\n\n"
+        "  Next steps:\n\n"
+        "  1. Install AgentStack globally (if not already installed):\n"
+        "    uv pip install --break-system-packages --user -e /Users/bastiannisnaciovenegasarevalo/uvAsTackCloneT-2/actualCustomRepo/uvAgentStack\n\n"
+        f"  2. Navigate to your project:\n"
+        f"    cd {project_metadata.project_slug}\n\n"
+        "  3. Create and activate virtual environment:\n"
+        "    uv venv\n"
+        "    source .venv/bin/activate\n\n"
+        "  4. Install project dependencies:\n"
+        "    uv sync\n\n"
+        "  5. Try running your agent:\n"
+        "    agentstack run\n\n"
+        "  Run `agentstack quickstart` or `agentstack docs` for next steps.\n"
+    )
 
 
 def export_template(output_filename: str):

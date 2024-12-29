@@ -22,8 +22,8 @@ AgentStack is _not_ a low-code alternative to development. Developers will still
 Assuming you're in your project folder (e.g., `TestFolder`) and have UV installed:
 
 ```sh
-# Install AgentStack globally using UV's tool management
-uv tool install -e /Users/bastiannisnaciovenegasarevalo/uvAsTackCloneT-2/actualCustomRepo/uvAgentStack
+# Install AgentStack globally (if not already installed)
+uv pip install --break-system-packages --user -e /Users/bastiannisnaciovenegasarevalo/uvAsTackCloneT-2/actualCustomRepo/uvAgentStack
 
 # Create a new AgentStack project
 agentstack init myproject
@@ -64,9 +64,9 @@ pip install uv
 
 Once UV is installed, here's how to create a new project:
 
-1. Install AgentStack globally using UV's tool management:
+1. Install AgentStack globally:
 ```sh
-uv tool install -e /Users/bastiannisnaciovenegasarevalo/uvAsTackCloneT-2/actualCustomRepo/uvAgentStack
+uv pip install --break-system-packages --user -e /Users/bastiannisnaciovenegasarevalo/uvAsTackCloneT-2/actualCustomRepo/uvAgentStack
 ```
 
 2. Create your AgentStack project:
