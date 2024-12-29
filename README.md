@@ -31,7 +31,7 @@ source .venv/bin/activate
 uv pip install -e "/Users/bastiannisnaciovenegasarevalo/uvAsTackCloneT-2/actualCustomRepo/uvAgentStack[dev]"
 
 # Create your project
-agentstack init <project_name>
+uv run agentstack init <project_name>
 ```
 
 <p align='center'>
@@ -65,7 +65,7 @@ uv pip install -e "/Users/bastiannisnaciovenegasarevalo/uvAsTackCloneT-2/actualC
 
 3. Create your project:
 ```sh
-agentstack init <project_name>
+uv run agentstack init <project_name>
 ```
 
 It will create a directory with your project name inside the current folder.<br>
@@ -99,7 +99,7 @@ Additionally, pre-built templates are available as a shortcut to building your p
 After generating a project, the next step is to build your agent project by creating Agents and Tasks. You can do this quickly with AgentStack:
 
 ```bash
-agentstack generate agent/task <name>
+uv run agentstack generate agent/task <name>
 ```
 
 Modify the agents and tasks by changing the `agents.yaml` and `tasks.yaml` configuration files in `src/config`
@@ -115,7 +115,7 @@ A list of all tools can be found [on our docs](https://docs.agentstack.sh/tools/
 Adding tools is as simple as
 
 ```bash
-agentstack tools add
+uv run agentstack tools add
 ```
 
 ## Running Your Agent
@@ -129,6 +129,31 @@ Runs the agent project in development mode.<br>
 > Note: Always use `uv run` when executing AgentStack commands to ensure proper environment management.
 
 > 👀 Support for easy production deployment of agents is coming soon.
+
+## Command Alias Setup
+
+To make working with AgentStack more convenient, you can set up an alias for the `uv run agentstack` command:
+
+### For Bash/Zsh (macOS/Linux)
+Add this to your `~/.bashrc`, `~/.zshrc`, or equivalent:
+```bash
+alias agentstack='uv run agentstack'
+```
+
+### For Windows PowerShell
+Add this to your PowerShell profile:
+```powershell
+Set-Alias -Name agentstack -Value "uv run agentstack"
+```
+
+After setting up the alias, you can use `agentstack` commands directly:
+```bash
+agentstack init <project_name>
+agentstack run
+agentstack generate agent <name>
+```
+
+> Note: The alias needs to be set up in each new shell session unless added to your shell's configuration file.
 
 ## Philosophy
 
