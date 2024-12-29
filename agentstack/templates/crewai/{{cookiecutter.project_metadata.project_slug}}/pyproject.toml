@@ -1,13 +1,19 @@
-[tool.uv]
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
 name = "{{cookiecutter.project_metadata.project_name}}"
 version = "{{cookiecutter.project_metadata.version}}"
 description = "{{cookiecutter.project_metadata.description}}"
-authors = ["{{cookiecutter.project_metadata.author_name}}"]
-license = "{{cookiecutter.project_metadata.license}}"
-
-[tool.uv.dependencies]
-python = ">=3.10,<=3.13"
-agentstack = {version = "{{cookiecutter.project_metadata.agentstack_version}}", extras = ["{{cookiecutter.framework}}"]}
+authors = [{name = "{{cookiecutter.project_metadata.author_name}}"}]
+license = {text = "{{cookiecutter.project_metadata.license}}"}
+requires-python = ">=3.10,<=3.13"
+dependencies = [
+    "agentstack @ file:///Users/bastiannisnaciovenegasarevalo/uvAsTackCloneT-2/actualCustomRepo/uvAgentStack",
+    "crewai==0.83.0",
+    "crewai-tools==0.14.0"
+]
 
 [project.scripts]
 {{cookiecutter.project_metadata.project_name}} = "{{cookiecutter.project_metadata.project_name}}.main:run"
@@ -15,3 +21,12 @@ run_crew = "{{cookiecutter.project_metadata.project_name}}.main:run"
 train = "{{cookiecutter.project_metadata.project_name}}.main:train"
 replay = "{{cookiecutter.project_metadata.project_name}}.main:replay"
 test = "{{cookiecutter.project_metadata.project_name}}.main:test"
+
+[tool.uv]
+package = true
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/{{cookiecutter.project_metadata.project_name}}"]
