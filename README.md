@@ -77,7 +77,8 @@ Once UV is installed, here's how to create a new project:
 cd /Users/bastiannisnaciovenegasarevalo/uvAsTackCloneT-2/actualCustomRepo/uvAgentStack
 uv venv
 source .venv/bin/activate
-uv pip install -e '.[dev]'
+uv pip install -e "/Users/bastiannisnaciovenegasarevalo/uvAsTackCloneT-2/actualCustomRepo/uvAgentStack[dev]"
+
 ```
 
 2. Install AgentStack globally:

@@ -44,7 +44,14 @@ def init_project_builder(
     slug_name: Optional[str] = None,
     template: Optional[str] = None,
     use_wizard: bool = False,
-):
+) -> None:
+    """Initialize a new AgentStack project.
+
+    Args:
+        slug_name: Optional name for the project (in snake_case)
+        template: Optional template to use
+        use_wizard: Whether to use the interactive wizard
+    """
     if not slug_name and not use_wizard:
         print(term_color("Project name is required. Use `agentstack init <project_name>`", 'red'))
         return
