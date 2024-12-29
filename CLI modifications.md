@@ -24,73 +24,79 @@ The initialization process now intelligently handles dependencies based on the u
   - Venv users without UV: UV installation steps
   - No environment: Full setup instructions
 
-### 2. CrewAI Migration Wizard
-Added a new `--migratecrew` flag to facilitate migration from CrewAI projects:
+### 2. Environment Management
+- Added automatic virtual environment handling
+- New standardized naming convention: `agentstackvenv_[project_name]`
+- Interactive prompt to handle environment switching
+- Clear command preview before execution
+- Automatic dependency installation with UV
 
-```bash
-agentstack init <project_name> --migratecrew
-```
+### 3. Project Initialization
+- Improved project initialization process
+- Removed automatic dependency installations from existing environments
+- Added clear success messages and next steps
+- TODO: Add support for migrating from regular CrewAI projects
 
-#### Features
-- Streamlined migration process
-- Only asks for essential information:
-  - Agent names (snake_case)
-  - Task names (snake_case)
-  - Task-to-agent assignments
-- Provides placeholder comments for:
-  - Agent roles
-  - Agent goals
-  - Agent backstories
-  - Task descriptions
-  - Expected outputs
+### 4. Dependency Management
+- Enhanced environment detection (Conda/venv)
+- Integrated UV for dependency handling
+- Clear instructions for manual setup when needed
 
-#### Example Placeholders
-```python
-# Agent
-agent['role'] = "# Replace with your CrewAI agent's role:
-# Example: agent.role = 'Senior Data Analyst'"
-
-# Task
-task['description'] = "# Replace with your CrewAI task's description:
-# Example: task.description = 'Analyze monthly sales data'"
-```
-
-### 3. Flag Compatibility
+### 5. Flag Compatibility
 Updated flag validation to ensure proper usage:
-- `--template`: Cannot be used with `--wizard` or `--migratecrew`
-- `--wizard`: Cannot be used with `--template` or `--migratecrew`
-- `--migratecrew`: Cannot be used with `--template` or `--wizard`
+- `--template`: Cannot be used with `--wizard`
+- `--wizard`: Cannot be used with `--template`
 
 ## Usage Examples
 
 ### Standard Project Creation
 ```bash
-agentstack init myproject
+agentstack init my_project
 ```
 
 ### Using the Wizard
 ```bash
-agentstack init myproject --wizard
-# or
-agentstack init myproject -w
+agentstack init --wizard
 ```
 
-### Migrating from CrewAI
+### With Template
 ```bash
-agentstack init myproject --migratecrew
-# or
-agentstack init myproject -m
+agentstack init my_project --template hello_alex
 ```
 
-### Using a Template
+## Environment Setup
+
+The CLI now offers two ways to handle virtual environments:
+
+### 1. Automatic Setup
+When in an existing virtual environment, the CLI will:
+1. Ask for permission to handle environment switching
+2. Show preview of commands to be executed
+3. Create new environment with standardized name
+4. Install all dependencies automatically
+
+### 2. Manual Setup
+If automatic setup is declined or fails, clear instructions are provided:
 ```bash
-agentstack init myproject --template hello_alex
-# or
-agentstack init myproject -t hello_alex
+deactivate  # Leave current environment
+cd [project_name]
+uv venv --name agentstackvenv_[project_name]
+source agentstackvenv_[project_name]/bin/activate
+uv lock
+uv sync
 ```
 
 ## Next Steps
-1. Test the CrewAI migration workflow with real projects
-2. Consider adding automatic detection of CrewAI project structure
-3. Add more detailed examples in placeholder comments
-4. Consider adding validation for CrewAI-specific patterns
+
+### Planned Improvements
+- Add CrewAI project migration support
+- Enhance template management
+- Add more configuration options
+- Improve error handling and recovery
+
+### Testing
+To ensure these changes work as expected:
+1. Test environment detection
+2. Verify automatic environment setup
+3. Confirm dependency installation
+4. Check error handling scenarios
