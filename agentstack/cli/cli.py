@@ -164,7 +164,7 @@ def init_project_builder(
 To set up manually:
     deactivate  # Leave current environment
     cd {project_details['name']}
-    uv venv --name agentstackvenv_{project_details['name']}
+    uv venv agentstackvenv_{project_details['name']}
     source agentstackvenv_{project_details['name']}/bin/activate
     uv lock
     uv sync
@@ -174,7 +174,7 @@ To set up manually:
             os.chdir(project_details['name'])
             try:
                 venv_name = f"agentstackvenv_{project_details['name']}"
-                subprocess.run(["uv", "venv", "--name", venv_name], check=True)
+                subprocess.run(["uv", "venv", venv_name], check=True)
                 subprocess.run(["uv", "lock"], check=True)
                 subprocess.run(["uv", "sync"], check=True)
                 os.chdir('..')
@@ -619,59 +619,36 @@ def export_template(output_filename: str):
         sys.exit(1)
 
 
-def handle_virtual_environment(project_name: str) -> bool:
-    """
-    Handles virtual environment setup automatically via CLI commands.
-    Returns True if successful, False otherwise.
-    """
+def handle_virtual_environment(project_name: str) -> None:
+    """Handle virtual environment setup for the project."""
+    print("\nI'll help you set up a new environment automatically! Here's what I'll do:\n")
+    print("1. Deactivate your current virtual environment")
+    print("2. Create a new environment named 'agentstackvenv_" + project_name + "'")
+    print("3. Activate the new environment")
+    print("4. Install all dependencies\n")
+
+    print("Running commands:")
+    print("    deactivate")
+    print("    cd " + project_name)
+    print("    uv venv agentstackvenv_" + project_name)
+    print("    source agentstackvenv_" + project_name + "/bin/activate")
+    print("    uv lock")
+    print("    uv sync\n")
+
     try:
-        venv_name = f"agentstackvenv_{project_name}"
-        
-        print(f"""
-I'll help you set up a new environment automatically! Here's what I'll do:
-
-1. Deactivate your current virtual environment
-2. Create a new environment named '{venv_name}'
-3. Activate the new environment
-4. Install all dependencies
-
-Running commands:
-    deactivate
-    cd {project_name}
-    uv venv --name {venv_name}
-    source {venv_name}/bin/activate
-    uv lock
-    uv sync
-""")
-        
-        # Run the commands
-        subprocess.run(["deactivate"], shell=True)
+        # Try to run the commands
+        subprocess.run(['deactivate'], shell=True, check=True)
         os.chdir(project_name)
-        subprocess.run(["uv", "venv", "--name", venv_name], check=True)
-        subprocess.run(["source", f"{venv_name}/bin/activate"], shell=True)
-        subprocess.run(["uv", "lock"], check=True)
-        subprocess.run(["uv", "sync"], check=True)
-        
-        print(f"""
-Success! Your new environment is ready:
-- Previous environment was deactivated
-- New environment '{venv_name}' is active
-- All dependencies are installed
-
-You can now start using your AgentStack project!
-""")
-        return True
-        
-    except Exception as e:
-        print(f"""
-Something went wrong: {str(e)}
-
-You can set up the environment manually with these commands:
-    deactivate  # Leave current environment
-    cd {project_name}
-    uv venv --name {venv_name}
-    source {venv_name}/bin/activate
-    uv lock
-    uv sync
-""")
-        return False
+        subprocess.run(['uv', 'venv', f'agentstackvenv_{project_name}'], check=True)
+        subprocess.run(['source', f'agentstackvenv_{project_name}/bin/activate'], shell=True, check=True)
+        subprocess.run(['uv', 'lock'], check=True)
+        subprocess.run(['uv', 'sync'], check=True)
+    except subprocess.CalledProcessError as e:
+        print("\nSomething went wrong:", str(e))
+        print("\nYou can set up the environment manually with these commands:")
+        print("    deactivate  # Leave current environment")
+        print("    cd " + project_name)
+        print("    uv venv agentstackvenv_" + project_name)
+        print("    source agentstackvenv_" + project_name + "/bin/activate")
+        print("    uv lock")
+        print("    uv sync\n")
