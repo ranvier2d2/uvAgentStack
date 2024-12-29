@@ -603,8 +603,6 @@ def check_environment():
     env_type = None
     if os.environ.get('VIRTUAL_ENV'):
         env_type = 'venv'
-    elif os.environ.get('CONDA_PREFIX'):
-        env_type = 'conda'
     
     try:
         result = subprocess.run(['uv', '--version'], check=True, capture_output=True, text=True)
@@ -655,9 +653,14 @@ def handle_virtual_environment(project_name: str) -> bool:
     current_env, uv_installed, uv_version = check_environment()
     
     if current_env:
-        print(f"\nDetected active {current_env} environment. Please deactivate it first:")
+        print("\nDetected active venv environment. Here's what to do:")
+        print("\n1. Install UV globally if not already installed:")
+        print("    pip install uv")
+        print("\n2. Deactivate current environment:")
         print("    deactivate")
-        print("\nThen run agentstack init again.")
+        print("\n3. Then run your command again:")
+        print(f"    uv pip install -e .")
+        print(f"    agentstack init {project_name}")
         return False
     
     if not uv_installed:
@@ -670,8 +673,8 @@ def handle_virtual_environment(project_name: str) -> bool:
     project_dir = os.path.join(current_dir, project_name)
 
     print("\nSetting up project environment using UV. Here's what I'll do:\n")
-    print("1. Let UV automatically create a .venv directory")
-    print("2. Install project dependencies with build isolation")
+    print("1. Create a new .venv directory")
+    print("2. Install project with build isolation")
     print("3. Generate requirements.txt and lock file")
     print("4. Validate environment integrity")
     
@@ -684,7 +687,7 @@ def handle_virtual_environment(project_name: str) -> bool:
     try:
         os.chdir(project_dir)
         
-        # Set up dependencies
+        # Set up dependencies with UV
         if not setup_project_dependencies(project_dir):
             print("\nFailed to set up project dependencies.")
             _print_manual_setup_instructions(project_name)
@@ -700,18 +703,9 @@ def handle_virtual_environment(project_name: str) -> bool:
         print("\nTo start using your project:")
         print("1. Navigate to your project directory:")
         print(f"    cd {project_name}")
-        print("\n2. UV will automatically activate the environment when you run commands")
-        print("   You can also manually activate it with:")
-        if os.name == 'nt':
-            print("    .venv\\Scripts\\activate")
-        else:
-            print("    source .venv/bin/activate")
-        
-        print("\nNotes:")
-        print("- The virtual environment is in the .venv directory")
-        print("- A requirements.txt and lock file have been generated")
-        print("- All dependencies have been verified")
-        print("- UV will handle dependency management automatically")
+        print("\n2. Install the package in editable mode:")
+        print("    uv pip install -e .")
+        print("\n3. Then you can use agentstack commands normally")
         return True
             
     except Exception as e:
