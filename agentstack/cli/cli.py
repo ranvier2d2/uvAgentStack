@@ -143,7 +143,7 @@ def init_project_builder(
         f"    cd {project_details['name']}\n\n"
         "2. Create and activate a virtual environment:\n"
         "    uv venv\n"
-        "    source .venv/bin/activate\n\n"
+        "    uv activate\n\n"
         "3. Install project dependencies:\n"
         "    uv sync\n\n"
         "4. Try running your agent:\n"
