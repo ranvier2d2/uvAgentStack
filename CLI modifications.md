@@ -10,104 +10,87 @@ The initialization process now intelligently handles dependencies based on the u
   - Conda environment (via `CONDA_PREFIX`)
   - Python virtual environment (via `VIRTUAL_ENV`)
   - No environment
-- Added environment validation checks
-- Verifies UV installation and configuration
 
 #### UV Integration
-- Uses UV's native virtual environment management
-- Implements proper build isolation with `--use-pep517`
-- Generates both requirements.txt and lock file
-- Verifies dependency integrity with `uv pip check`
-- Handles timeouts for long-running operations
+- Checks for UV installation
+- For venv + UV environments:
+  ```bash
+  # Automatically runs:
+  uv lock
+  uv sync
+  ```
+- Shows environment-specific guidance:
+  - Conda users: Instructions for UV in conda
+  - Venv users without UV: UV installation steps
+  - No environment: Full setup instructions
 
-### 2. Environment Management
-- Uses UV's automatic `.venv` creation
-- Prevents running in active environments
-- Validates environment integrity after creation
-- Provides clear activation instructions
-- Handles platform-specific paths (Windows/Unix)
+### 2. CrewAI Migration Wizard
+Added a new `--migratecrew` flag to facilitate migration from CrewAI projects:
 
-### 3. Project Initialization
-- Improved project initialization process
-- Split functionality into focused functions
-- Added proper error handling and status returns
-- Provides detailed progress information
-- Clear next steps after setup
+```bash
+agentstack init <project_name> --migratecrew
+```
 
-### 4. Dependency Management
-- Uses UV's pip compile for requirements generation
-- Implements proper build isolation
-- Verifies installation integrity
-- Handles dependency conflicts
-- Provides fallback instructions
+#### Features
+- Streamlined migration process
+- Only asks for essential information:
+  - Agent names (snake_case)
+  - Task names (snake_case)
+  - Task-to-agent assignments
+- Provides placeholder comments for:
+  - Agent roles
+  - Agent goals
+  - Agent backstories
+  - Task descriptions
+  - Expected outputs
 
-### 5. Error Handling
-- Added environment validation function
-- Proper timeout handling for long operations
-- Clear error messages and recovery steps
-- Status returns for all operations
-- Separate manual setup instructions
+#### Example Placeholders
+```python
+# Agent
+agent['role'] = "# Replace with your CrewAI agent's role:
+# Example: agent.role = 'Senior Data Analyst'"
+
+# Task
+task['description'] = "# Replace with your CrewAI task's description:
+# Example: task.description = 'Analyze monthly sales data'"
+```
+
+### 3. Flag Compatibility
+Updated flag validation to ensure proper usage:
+- `--template`: Cannot be used with `--wizard` or `--migratecrew`
+- `--wizard`: Cannot be used with `--template` or `--migratecrew`
+- `--migratecrew`: Cannot be used with `--template` or `--wizard`
 
 ## Usage Examples
 
 ### Standard Project Creation
 ```bash
-agentstack init my_project
+agentstack init myproject
 ```
 
 ### Using the Wizard
 ```bash
-agentstack init --wizard
+agentstack init myproject --wizard
+# or
+agentstack init myproject -w
 ```
 
-### With Template
+### Migrating from CrewAI
 ```bash
-agentstack init my_project --template hello_alex
+agentstack init myproject --migratecrew
+# or
+agentstack init myproject -m
 ```
 
-## Environment Setup
-
-The CLI now offers a robust UV-based environment setup:
-
-### 1. Automatic Setup
-The CLI will:
-1. Check for and prevent running in active environments
-2. Create a new .venv using UV
-3. Install dependencies with build isolation
-4. Generate requirements.txt and lock file
-5. Validate environment integrity
-
-### 2. Manual Setup
-If automatic setup fails, clear instructions are provided:
+### Using a Template
 ```bash
-# 1. Ensure no active environment
-deactivate
-
-# 2. Navigate to project
-cd [project_name]
-
-# 3. Install with build isolation
-uv pip install --use-pep517 .
-
-# 4. Generate requirements and lock file
-uv pip compile requirements.txt
-
-# 5. Verify installation
-uv pip check
+agentstack init myproject --template hello_alex
+# or
+agentstack init myproject -t hello_alex
 ```
 
 ## Next Steps
-
-### Planned Improvements
-- Add CrewAI project migration support
-- Enhance template management
-- Add more configuration options
-- Improve error handling and recovery
-
-### Testing Needs
-1. Environment detection and validation
-2. Build isolation effectiveness
-3. Lock file generation
-4. Cross-platform compatibility
-5. Timeout handling
-6. Error recovery scenarios
+1. Test the CrewAI migration workflow with real projects
+2. Consider adding automatic detection of CrewAI project structure
+3. Add more detailed examples in placeholder comments
+4. Consider adding validation for CrewAI-specific patterns

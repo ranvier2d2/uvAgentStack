@@ -29,7 +29,6 @@ from agentstack.tasks import get_all_tasks
 from agentstack.utils import open_json_file, term_color, is_snake_case, get_framework, validator_not_empty
 from agentstack.proj_templates import TemplateConfig
 from agentstack.exceptions import ValidationError
-import subprocess
 
 
 PREFERRED_MODELS = [
@@ -46,10 +45,9 @@ def init_project_builder(
     slug_name: Optional[str] = None,
     template: Optional[str] = None,
     use_wizard: bool = False,
+    migrate_crew: bool = False,
 ):
-    """Initialize a new AgentStack project.
-    """
-    if not slug_name and not use_wizard:
+    if not slug_name and not use_wizard and not migrate_crew:
         print(term_color("Project name is required. Use `agentstack init <project_name>`", 'red'))
         return
 
@@ -57,8 +55,12 @@ def init_project_builder(
         print(term_color("Project name must be snake case", 'red'))
         return
 
-    if template is not None and use_wizard:
-        print(term_color("Template cannot be used with wizard flag", 'red'))
+    if template is not None and (use_wizard or migrate_crew):
+        print(term_color("Template cannot be used with wizard or migrate flags", 'red'))
+        return
+
+    if use_wizard and migrate_crew:
+        print(term_color("Cannot use both wizard and migrate flags together", 'red'))
         return
 
     template_data = None
@@ -100,6 +102,14 @@ def init_project_builder(
         design = ask_design()
         tools = ask_tools()
 
+    elif migrate_crew:
+        welcome_message()
+        project_details = ask_project_details(slug_name)
+        welcome_message()
+        framework = ask_framework()
+        design = ask_migrate_crew()
+        tools = ask_tools()
+
     else:
         welcome_message()
         # the user has started a new project; let's give them something to work with
@@ -125,12 +135,18 @@ def init_project_builder(
     # Set project path in configuration
     conf.set_path(project_details['name'])
 
-    # Check virtual environment and UV status
-    env_type, uv_installed, uv_version = check_environment()
-    
-    # Check if UV is installed
-    has_uv = uv_installed
-    
+    # After project generation, check environment and UV
+    current_venv = os.environ.get('VIRTUAL_ENV')
+    has_uv = False
+    try:
+        subprocess.run(["uv", "--version"], capture_output=True, check=True)
+        has_uv = True
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        pass
+
+    # Get the path to our custom AgentStack installation
+    agentstack_path = "/Users/bastiannisnaciovenegasarevalo/uvAsTackCloneT-2/actualCustomRepo/uvAgentStack"
+
     # Add tools if specified
     if tools:
         for tool_data in tools:
@@ -143,71 +159,43 @@ def init_project_builder(
         f"    cd {project_details['name']}\n\n"
     )
 
-    if has_uv:
-        if env_type:
-            print("\nI notice you're currently in a virtual environment.")
-            auto_handle = inquirer.confirm(
-                message="Would you like me to automatically set up a new environment for this project?",
-                default=True
-            )
-            if auto_handle:
-                if handle_virtual_environment(project_details['name']):
-                    return  # Setup successful
-            else:
-                print(f"""
-To set up manually:
-    deactivate  # Leave current environment
-    cd {project_details['name']}
-    uv install
-""")
-        else:
-            print("Setting up new virtual environment for your project...")
-            os.chdir(project_details['name'])
-            try:
-                subprocess.run(["uv", "install"], check=True)
-                print(
-                    "Dependencies installed successfully!\n"
-                    "To activate your project environment:\n"
-                    f"    cd {project_details['name']}\n"
-                )
-            except subprocess.CalledProcessError:
-                os.chdir('..')
-                print(
-                    "Failed to set up environment. To set up manually:\n"
-                    f"    cd {project_details['name']}\n"
-                    "    uv install\n"
-                )
-    elif env_type == 'conda':
+    if current_venv:
         print(
-            "Conda environment detected!\n"
-            "You can use UV directly in your conda environment:\n"
-            "    pip install uv\n"
-            "    uv install\n\n"
-        )
-    elif env_type == 'venv':
-        print(
-            "Virtual environment detected!\n"
-            "Install UV to handle dependencies:\n"
-            "    pip install uv\n"
-            "    uv install\n\n"
+            "You're currently in a virtual environment. To set up your project:\n\n"
+            "1. First deactivate your current environment:\n"
+            "    deactivate\n\n"
+            f"2. Navigate to your project and create a new environment:\n"
+            f"    cd {project_details['name']}\n"
+            "    uv venv\n"
+            "    source .venv/bin/activate\n\n"
+            "3. Install dependencies:\n"
+            f"    uv pip install -e {agentstack_path}\n"
+            "    uv pip install -e .\n"
         )
     else:
         print(
-            "Make sure you have UV installed. This handles the project's dependencies:\n"
-            "    pip install uv\n\n"
-            "Create and activate virtual environment:\n"
-            "    uv install\n\n"
-            "Initialize UV and install dependencies:\n"
-            "    uv install\n"
+            "To set up your project environment:\n\n"
+            f"1. Navigate to your project:\n"
+            f"    cd {project_details['name']}\n\n"
+            "2. Create and activate a virtual environment:\n"
+            "    uv venv\n"
+            "    source .venv/bin/activate\n\n"
+            "3. Install dependencies:\n"
+            f"    uv pip install -e {agentstack_path}\n"
+            "    uv pip install -e .\n"
+        )
+
+    if not has_uv:
+        print(
+            "\nNote: UV is not installed. Install it first with:\n"
+            "    pip install uv\n"
         )
 
     print(
-        "You can create a new agent with:\n"
-        "    agentstack generate agent <agent_name>\n\n"
-        "You can create a new task with:\n"
-        "    agentstack generate task <task_name>\n\n"
-        "Finally, try running your agent with:\n"
-        "    agentstack run\n\n"
+        "\nOnce your environment is set up, you can:\n"
+        "    agentstack generate agent <agent_name>  # Create a new agent\n"
+        "    agentstack generate task <task_name>    # Create a new task\n"
+        "    agentstack run                         # Run your agent\n\n"
         "Run `agentstack quickstart` or `agentstack docs` for next steps.\n"
     )
 
@@ -394,6 +382,89 @@ First we need to create the agents that will work together to accomplish tasks:
         time.sleep(0.3)
         print('.')
     print('Tasks created!')
+
+    return {'tasks': tasks, 'agents': agents}
+
+
+def ask_migrate_crew() -> dict:
+    os.system("cls" if os.name == "nt" else "clear")
+    title = text2art("CrewAI Migration", font="shimrod")
+    print(title)
+
+    print("""
+Welcome to the CrewAI Migration Wizard! 
+
+This wizard will help you migrate your existing CrewAI project to AgentStack.
+We'll create placeholders for your agents and tasks - you'll just need to fill in your existing implementations.
+    """)
+
+    make_agent = True
+    agents = []
+    while make_agent:
+        print('---')
+        print(f"Agent #{len(agents)+1}")
+        agent = {}
+        
+        # Only ask for the name, provide placeholders for the rest
+        agent['name'] = get_validated_input(
+            "What's the name of this agent from your CrewAI project? (snake_case)", 
+            min_length=3, 
+            snake_case=True
+        )
+        
+        agent['role'] = "# Replace with your CrewAI agent's role:\n# Example: agent.role = 'Senior Data Analyst'"
+        agent['goal'] = "# Replace with your CrewAI agent's goal:\n# Example: agent.goal = 'Analyze and interpret complex data sets'"
+        agent['backstory'] = "# Replace with your CrewAI agent's backstory:\n# Example: agent.backstory = 'Expert in data analysis with 10 years of experience'"
+        agent['model'] = PREFERRED_MODELS[0]  # Default to first model, can be changed later
+        
+        agents.append(agent)
+        make_agent = inquirer.confirm(message="Add another agent from your CrewAI project?")
+
+    print('')
+    for x in range(3):
+        time.sleep(0.3)
+        print('.')
+    print('Agents structure created!')
+    print('')
+
+    make_task = True
+    tasks = []
+    while make_task:
+        print('---')
+        print(f"Task #{len(tasks) + 1}")
+        task = {}
+        
+        # Only ask for name and assigned agent
+        task['name'] = get_validated_input(
+            "What's the name of this task from your CrewAI project? (snake_case)", 
+            min_length=3, 
+            snake_case=True
+        )
+        
+        task['description'] = "# Replace with your CrewAI task's description:\n# Example: task.description = 'Analyze monthly sales data'"
+        task['expected_output'] = "# Replace with your CrewAI task's expected output:\n# Example: task.expected_output = 'A comprehensive sales analysis report'"
+        
+        task['agent'] = inquirer.list_input(
+            message="Which agent should be assigned this task?",
+            choices=[a['name'] for a in agents],
+        )
+        
+        tasks.append(task)
+        make_task = inquirer.confirm(message="Add another task from your CrewAI project?")
+
+    print('')
+    for x in range(3):
+        time.sleep(0.3)
+        print('.')
+    print('Migration structure created!')
+    
+    print("""
+Next Steps:
+1. Navigate to your project directory
+2. Find the generated agent and task files
+3. Replace the placeholder comments with your existing CrewAI implementations
+4. Run your migrated project with `agentstack run`
+    """)
 
     return {'tasks': tasks, 'agents': agents}
 
@@ -596,143 +667,3 @@ def export_template(output_filename: str):
     except Exception as e:
         print(term_color(f"Failed to write template to file: {e}", 'red'))
         sys.exit(1)
-
-
-def check_environment():
-    """Check current environment status and UV installation."""
-    env_type = None
-    if os.environ.get('VIRTUAL_ENV'):
-        env_type = 'venv'
-    
-    try:
-        result = subprocess.run(['uv', '--version'], check=True, capture_output=True, text=True)
-        uv_version = result.stdout.strip()
-        return env_type, True, uv_version
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        return env_type, False, None
-
-def validate_environment(project_dir: str) -> bool:
-    """Validate environment integrity after creation."""
-    try:
-        venv_path = os.path.join(project_dir, '.venv')
-        if not os.path.exists(venv_path):
-            return False
-            
-        # Check UV installation in environment
-        result = subprocess.run(['uv', 'pip', 'check'],
-                              check=True,
-                              capture_output=True,
-                              text=True)
-        return 'No broken requirements found' in result.stdout
-    except subprocess.CalledProcessError:
-        return False
-
-def setup_project_dependencies(project_dir: str) -> bool:
-    """Set up project dependencies with proper isolation."""
-    try:
-        # Install with build isolation
-        subprocess.run(['uv', 'pip', 'install', '--use-pep517', '.'],
-                      check=True,
-                      timeout=300)
-        
-        # Generate lock file and requirements
-        subprocess.run(['uv', 'pip', 'compile', 'requirements.txt'],
-                      check=True,
-                      timeout=60)
-        
-        # Verify installation
-        subprocess.run(['uv', 'pip', 'check'],
-                      check=True,
-                      timeout=30)
-        return True
-    except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
-        return False
-
-def handle_virtual_environment(project_name: str) -> bool:
-    """Handle virtual environment setup using UV."""
-    current_env, uv_installed, uv_version = check_environment()
-    
-    if current_env:
-        print("\nDetected active venv environment. Here's what to do:")
-        print("\n1. Deactivate current environment:")
-        print("    deactivate")
-        print("\n2. Create a new environment and activate it:")
-        print("    python3 -m venv venv")
-        print("    source venv/bin/activate")
-        print("\n3. Install UV in the new environment:")
-        print("    pip install uv")
-        print("\n4. Install agentstack in editable mode:")
-        print("    uv pip install --no-deps -e .")
-        print("    uv pip install -r requirements.txt")
-        print("\n5. Then run your command again:")
-        print(f"    agentstack init {project_name}")
-        return False
-    
-    if not uv_installed:
-        print("\nUV is not installed. Please install it first:")
-        print("    pip install uv")
-        print("\nThen run agentstack init again.")
-        return False
-
-    current_dir = os.getcwd()
-    project_dir = os.path.join(current_dir, project_name)
-
-    print("\nSetting up project environment using UV. Here's what I'll do:\n")
-    print("1. Create a new .venv directory")
-    print("2. Install project with build isolation")
-    print("3. Generate requirements.txt and lock file")
-    print("4. Validate environment integrity")
-    
-    print("\nRunning commands:")
-    print(f"    cd {project_name}")
-    print("    uv pip install --no-deps -e .")
-    print("    uv pip install -r requirements.txt")
-    print("    uv pip check")
-
-    try:
-        os.chdir(project_dir)
-        
-        # Set up dependencies with UV
-        if not setup_project_dependencies(project_dir):
-            print("\nFailed to set up project dependencies.")
-            _print_manual_setup_instructions(project_name)
-            return False
-            
-        # Validate environment
-        if not validate_environment(project_dir):
-            print("\nEnvironment validation failed.")
-            _print_manual_setup_instructions(project_name)
-            return False
-        
-        print("\nEnvironment setup complete!")
-        print("\nTo start using your project:")
-        print("1. Navigate to your project directory:")
-        print(f"    cd {project_name}")
-        print("\n2. Install the package in editable mode:")
-        print("    uv pip install --no-deps -e .")
-        print("    uv pip install -r requirements.txt")
-        print("\n3. Then you can use agentstack commands normally")
-        return True
-            
-    except Exception as e:
-        print(f"\nUnexpected error during environment setup: {str(e)}")
-        _print_manual_setup_instructions(project_name)
-        return False
-    finally:
-        os.chdir(current_dir)
-
-def _print_manual_setup_instructions(project_name: str):
-    """Print instructions for manual environment setup."""
-    print("\nTo set up manually:")
-    print("1. Make sure no environment is active:")
-    print("    deactivate")
-    print("\n2. Create a new environment:")
-    print("    python3 -m venv venv")
-    print("    source venv/bin/activate")
-    print(f"\n3. Navigate to your project:")
-    print(f"    cd {project_name}")
-    print("\n4. Install project with dependencies:")
-    print("    uv pip install --no-deps -e .")
-    print("    uv pip install -r requirements.txt")
-    print("\n5. Verify installation:")
-    print("    uv pip check")
