@@ -120,9 +120,13 @@ agentstack tools add
 
 ## Running Your Agent
 
-`agentstack run`
+```bash
+uv run agentstack run
+```
 
 Runs the agent project in development mode.<br>
+
+> Note: Always use `uv run` when executing AgentStack commands to ensure proper environment management.
 
 > 👀 Support for easy production deployment of agents is coming soon.
 

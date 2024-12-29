@@ -144,7 +144,7 @@ def init_project_builder(
         "    uv lock\n"
         "    uv sync\n\n"
         "  6. Try running your agent:\n"
-        "    agentstack run\n\n"
+        "    uv run agentstack run\n\n"
         "  Run `agentstack quickstart` or `agentstack docs` for next steps.\n"
     )
 

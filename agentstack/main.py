@@ -1,6 +1,9 @@
 import sys
 import argparse
 import webbrowser
+import os
+import subprocess
+from pathlib import Path
 
 from agentstack import conf, auth
 from agentstack.cli import (
@@ -17,7 +20,26 @@ from agentstack import generation
 from agentstack.update import check_for_updates
 
 
+def ensure_uv_environment():
+    """Ensure the command is running in a UV-managed environment."""
+    if not os.environ.get("VIRTUAL_ENV"):
+        # If not in a virtual environment, rerun the command with UV
+        args = ["uv", "run"] + sys.argv
+        try:
+            result = subprocess.run(args, check=True)
+            sys.exit(result.returncode)
+        except subprocess.CalledProcessError as e:
+            sys.exit(e.returncode)
+        except FileNotFoundError:
+            print("Error: UV is not installed. Please install UV first with: pip install uv")
+            sys.exit(1)
+
+
 def main():
+    # Ensure we're running in a UV environment for all commands except 'init'
+    if len(sys.argv) > 1 and sys.argv[1] != "init":
+        ensure_uv_environment()
+
     global_parser = argparse.ArgumentParser(add_help=False)
     global_parser.add_argument(
         "--path",
