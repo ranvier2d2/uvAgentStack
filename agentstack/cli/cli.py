@@ -118,11 +118,38 @@ def init_project_builder(
     log.debug(f"project_details: {project_details}" f"framework: {framework}" f"design: {design}")
     insert_template(project_details, framework, design, template_data)
 
-    # we have an agentstack.json file in the directory now
+    # Set project path in configuration
     conf.set_path(project_details['name'])
 
-    for tool_data in tools:
-        generation.add_tool(tool_data['name'], agents=tool_data['agents'])
+    # Initialize UV lock and sync in the project directory
+    os.chdir(project_details['name'])
+    os.system("uv lock")
+    os.system("uv sync")
+    os.chdir('..')
+
+    # Add tools if specified
+    if tools:
+        for tool_data in tools:
+            generation.add_tool(tool_data['name'], agents=tool_data['agents'])
+
+    print(
+        "\n"
+        "🚀 \033[92mAgentStack project generated successfully!\033[0m\n\n"
+        "  Next steps:\n"
+        f"    cd {project_details['name']}\n\n"
+        "  Make sure you have UV installed:\n"
+        "    pip install uv\n\n"
+        "  Create and activate virtual environment:\n"
+        "    uv venv\n"
+        "    source .venv/bin/activate\n\n"
+        "  Initialize UV and install dependencies:\n"
+        "    uv lock\n"
+        "    uv sync\n"
+        "    uv pip install -e .\n\n"
+        "  Finally, try running your agent with:\n"
+        "    agentstack run\n\n"
+        "  Run `agentstack quickstart` or `agentstack docs` for next steps.\n"
+    )
 
 
 def welcome_message():
@@ -438,14 +465,17 @@ def insert_template(
     print(
         "\n"
         "🚀 \033[92mAgentStack project generated successfully!\033[0m\n\n"
-        "  Next, run:\n"
-        f"    cd {project_metadata.project_slug}\n"
-        "    python -m venv .venv\n"
+        "  Next steps:\n"
+        f"    cd {project_metadata.project_slug}\n\n"
+        "  Make sure you have UV installed:\n"
+        "    pip install uv\n\n"
+        "  Create and activate virtual environment:\n"
+        "    uv venv\n"
         "    source .venv/bin/activate\n\n"
-        "  Make sure you have the latest version of poetry installed:\n"
-        "    pip install -U poetry\n\n"
-        "  You'll need to install the project's dependencies with:\n"
-        "    poetry install\n\n"
+        "  Initialize UV and install dependencies:\n"
+        "    uv lock\n"
+        "    uv sync\n"
+        "    uv pip install -e .\n\n"
         "  Finally, try running your agent with:\n"
         "    agentstack run\n\n"
         "  Run `agentstack quickstart` or `agentstack docs` for next steps.\n"

@@ -4,7 +4,7 @@ from pathlib import Path
 import shutil
 from agentstack import conf
 from agentstack.conf import ConfigFile
-from agentstack.generation.files import EnvFile
+from agentstack.generation.files import EnvFile, ProjectFile
 from agentstack.utils import (
     verify_agentstack_project,
     get_framework,
@@ -107,8 +107,8 @@ class GenerationFilesTest(unittest.TestCase):
             tmp_data
             == """\nENV_VAR1=value1\nENV_VAR2=value_ignored\nENV_VAR2=value2\n#ENV_VAR3=""\nENV_VAR100=value2"""
         )
-    
-    def test_write_env_numeric_that_can_be_boolean(self):
+
+    def test_read_env_numeric_that_can_be_boolean(self):
         shutil.copy(BASE_PATH / "fixtures/.env", self.project_dir / ".env")
 
         with EnvFile() as env:
@@ -133,3 +133,44 @@ class GenerationFilesTest(unittest.TestCase):
             tmp_file
             == """\nENV_VAR1=value1\nENV_VAR2=value_ignored\nENV_VAR2=value2\n#ENV_VAR3=""\nENV_VAR3=value3"""
         )
+
+    def test_read_project_file(self):
+        # Create a test pyproject.toml with UV configuration
+        pyproject_content = """
+[tool.uv]
+name = "test-project"
+version = "0.1.0"
+description = "Test project description"
+authors = ["Test Author"]
+license = "MIT"
+
+[tool.uv.dependencies]
+python = ">=3.10,<=3.13"
+agentstack = {version = "0.1.0", extras = ["crewai"]}
+"""
+        with open(self.project_dir / "pyproject.toml", "w") as f:
+            f.write(pyproject_content)
+
+        project = ProjectFile()
+        assert project.project_name == "test-project"
+        assert project.project_version == "0.1.0"
+        assert project.project_description == "Test project description"
+
+    def test_read_project_file_missing_uv(self):
+        # Create a test pyproject.toml without UV configuration
+        pyproject_content = """
+[project]
+name = "test-project"
+version = "0.1.0"
+"""
+        with open(self.project_dir / "pyproject.toml", "w") as f:
+            f.write(pyproject_content)
+
+        project = ProjectFile()
+        with self.assertRaises(KeyError) as cm:
+            _ = project.project_metadata
+        assert str(cm.exception) == "'No UV metadata found in pyproject.toml.'"
+
+    def test_read_project_file_missing_file(self):
+        with self.assertRaises(FileNotFoundError) as _:
+            _ = ProjectFile()
