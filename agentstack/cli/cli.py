@@ -654,12 +654,17 @@ def handle_virtual_environment(project_name: str) -> bool:
     
     if current_env:
         print("\nDetected active venv environment. Here's what to do:")
-        print("\n1. Install UV globally if not already installed:")
-        print("    pip install uv")
-        print("\n2. Deactivate current environment:")
+        print("\n1. Deactivate current environment:")
         print("    deactivate")
-        print("\n3. Then run your command again:")
-        print(f"    uv pip install -e .")
+        print("\n2. Create a new environment and activate it:")
+        print("    python3 -m venv venv")
+        print("    source venv/bin/activate")
+        print("\n3. Install UV in the new environment:")
+        print("    pip install uv")
+        print("\n4. Install agentstack in editable mode:")
+        print("    uv pip install --no-deps -e .")
+        print("    uv pip install -r requirements.txt")
+        print("\n5. Then run your command again:")
         print(f"    agentstack init {project_name}")
         return False
     
@@ -680,8 +685,8 @@ def handle_virtual_environment(project_name: str) -> bool:
     
     print("\nRunning commands:")
     print(f"    cd {project_name}")
-    print("    uv pip install --use-pep517 .")
-    print("    uv pip compile requirements.txt")
+    print("    uv pip install --no-deps -e .")
+    print("    uv pip install -r requirements.txt")
     print("    uv pip check")
 
     try:
@@ -704,7 +709,8 @@ def handle_virtual_environment(project_name: str) -> bool:
         print("1. Navigate to your project directory:")
         print(f"    cd {project_name}")
         print("\n2. Install the package in editable mode:")
-        print("    uv pip install -e .")
+        print("    uv pip install --no-deps -e .")
+        print("    uv pip install -r requirements.txt")
         print("\n3. Then you can use agentstack commands normally")
         return True
             
@@ -720,11 +726,13 @@ def _print_manual_setup_instructions(project_name: str):
     print("\nTo set up manually:")
     print("1. Make sure no environment is active:")
     print("    deactivate")
-    print(f"\n2. Navigate to your project:")
+    print("\n2. Create a new environment:")
+    print("    python3 -m venv venv")
+    print("    source venv/bin/activate")
+    print(f"\n3. Navigate to your project:")
     print(f"    cd {project_name}")
-    print("\n3. Install project with build isolation:")
-    print("    uv pip install --use-pep517 .")
-    print("\n4. Generate requirements and lock file:")
-    print("    uv pip compile requirements.txt")
+    print("\n4. Install project with dependencies:")
+    print("    uv pip install --no-deps -e .")
+    print("    uv pip install -r requirements.txt")
     print("\n5. Verify installation:")
     print("    uv pip check")
