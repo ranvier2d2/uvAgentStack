@@ -37,6 +37,7 @@ PREFERRED_MODELS = [
     'openai/o1-preview',
     'openai/gpt-4-turbo',
     'anthropic/claude-3-opus',
+    'azure/gpt-4o',
 ]
 
 
@@ -44,8 +45,9 @@ def init_project_builder(
     slug_name: Optional[str] = None,
     template: Optional[str] = None,
     use_wizard: bool = False,
+    migrate_crew: bool = False,
 ):
-    if not slug_name and not use_wizard:
+    if not slug_name and not use_wizard and not migrate_crew:
         print(term_color("Project name is required. Use `agentstack init <project_name>`", 'red'))
         return
 
@@ -53,8 +55,12 @@ def init_project_builder(
         print(term_color("Project name must be snake case", 'red'))
         return
 
-    if template is not None and use_wizard:
-        print(term_color("Template and wizard flags cannot be used together", 'red'))
+    if template is not None and (use_wizard or migrate_crew):
+        print(term_color("Template cannot be used with wizard or migrate flags", 'red'))
+        return
+
+    if use_wizard and migrate_crew:
+        print(term_color("Cannot use both wizard and migrate flags together", 'red'))
         return
 
     template_data = None
@@ -96,6 +102,14 @@ def init_project_builder(
         design = ask_design()
         tools = ask_tools()
 
+    elif migrate_crew:
+        welcome_message()
+        project_details = ask_project_details(slug_name)
+        welcome_message()
+        framework = ask_framework()
+        design = ask_migrate_crew()
+        tools = ask_tools()
+
     else:
         welcome_message()
         # the user has started a new project; let's give them something to work with
@@ -121,6 +135,19 @@ def init_project_builder(
     # Set project path in configuration
     conf.set_path(project_details['name'])
 
+    # Check virtual environment and UV status
+    in_conda = os.environ.get('CONDA_PREFIX') is not None
+    in_venv = os.environ.get('VIRTUAL_ENV') is not None
+    
+    # Check if UV is installed
+    has_uv = False
+    try:
+        import subprocess
+        subprocess.run(["uv", "--version"], capture_output=True, check=True)
+        has_uv = True
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        pass
+
     # Add tools if specified
     if tools:
         for tool_data in tools:
@@ -131,15 +158,53 @@ def init_project_builder(
         "🚀 \033[92mAgentStack project generated successfully!\033[0m\n\n"
         "  Next steps:\n"
         f"    cd {project_details['name']}\n\n"
-        "  Make sure you have UV installed. This handles the project's dependencies:\n"
-        "    pip install uv\n\n"
-        "  Create and activate virtual environment:\n"
-        "    uv venv\n"
-        "    source .venv/bin/activate\n\n"
-        "  Initialize UV and install dependencies:\n"
-        "    uv lock\n"
-        "    uv sync\n"
-        #"    uv pip install -e .\n\n"
+    )
+
+    if in_venv and has_uv:
+        # If we're in a venv and have UV, automatically handle dependencies
+        print("📦 Virtual environment and UV detected! Setting up dependencies automatically...")
+        os.chdir(project_details['name'])
+        try:
+            subprocess.run(["uv", "lock"], check=True)
+            subprocess.run(["uv", "sync"], check=True)
+            os.chdir('..')
+            print("✨ Dependencies installed successfully in your current virtual environment!\n")
+        except subprocess.CalledProcessError:
+            os.chdir('..')
+            print("❌ Failed to install dependencies. You may need to create a new virtual environment:\n"
+                  "    uv venv\n"
+                  "    source .venv/bin/activate\n"
+                  "    uv lock\n"
+                  "    uv sync\n")
+    elif in_conda:
+        print(
+            "  📦 Conda environment detected!\n"
+            "  You can use UV directly in your conda environment:\n"
+            "    pip install uv\n"
+            "    uv lock\n"
+            "    uv sync\n\n"
+        )
+    elif in_venv:
+        print(
+            "  📦 Virtual environment detected!\n"
+            "  Install UV to handle dependencies:\n"
+            "    pip install uv\n"
+            "    uv lock\n"
+            "    uv sync\n\n"
+        )
+    else:
+        print(
+            "  Make sure you have UV installed. This handles the project's dependencies:\n"
+            "    pip install uv\n\n"
+            "  Create and activate virtual environment:\n"
+            "    uv venv\n"
+            "    source .venv/bin/activate\n\n"
+            "  Initialize UV and install dependencies:\n"
+            "    uv lock\n"
+            "    uv sync\n"
+        )
+
+    print(
         "  You can create a new agent with:\n"
         "    agentstack generate agent <agent_name>\n\n"
         "  You can create a new task with:\n"
@@ -147,7 +212,6 @@ def init_project_builder(
         "  Finally, try running your agent with:\n"
         "    agentstack run\n\n"
         "  Run `agentstack quickstart` or `agentstack docs` for next steps.\n"
- 
     )
 
 
@@ -295,7 +359,7 @@ def ask_design() -> dict:
     print(title)
 
     print("""
-🪄 welcome to the agent builder wizard!! 🪄
+🪄 Welcome to the agent builder wWzard!! 🪄
 
 First we need to create the agents that will work together to accomplish tasks:
     """)
@@ -333,6 +397,89 @@ First we need to create the agents that will work together to accomplish tasks:
         time.sleep(0.3)
         print('.')
     print('Let there be tasks (ノ ˘_˘)ノ　ζ|||ζ　ζ|||ζ　ζ|||ζ')
+
+    return {'tasks': tasks, 'agents': agents}
+
+
+def ask_migrate_crew() -> dict:
+    os.system("cls" if os.name == "nt" else "clear")
+    title = text2art("CrewAI Migration", font="shimrod")
+    print(title)
+
+    print("""
+🚀 Welcome to the CrewAI Migration Wizard! 
+
+This wizard will help you migrate your existing CrewAI project to AgentStack.
+We'll create placeholders for your agents and tasks - you'll just need to fill in your existing implementations.
+    """)
+
+    make_agent = True
+    agents = []
+    while make_agent:
+        print('---')
+        print(f"Agent #{len(agents)+1}")
+        agent = {}
+        
+        # Only ask for the name, provide placeholders for the rest
+        agent['name'] = get_validated_input(
+            "What's the name of this agent from your CrewAI project? (snake_case)", 
+            min_length=3, 
+            snake_case=True
+        )
+        
+        agent['role'] = "# Replace with your CrewAI agent's role:\n# Example: agent.role = 'Senior Data Analyst'"
+        agent['goal'] = "# Replace with your CrewAI agent's goal:\n# Example: agent.goal = 'Analyze and interpret complex data sets'"
+        agent['backstory'] = "# Replace with your CrewAI agent's backstory:\n# Example: agent.backstory = 'Expert in data analysis with 10 years of experience'"
+        agent['model'] = PREFERRED_MODELS[0]  # Default to first model, can be changed later
+        
+        agents.append(agent)
+        make_agent = inquirer.confirm(message="Add another agent from your CrewAI project?")
+
+    print('')
+    for x in range(3):
+        time.sleep(0.3)
+        print('.')
+    print('Great! Agents structure created! Now for the tasks...')
+    print('')
+
+    make_task = True
+    tasks = []
+    while make_task:
+        print('---')
+        print(f"Task #{len(tasks) + 1}")
+        task = {}
+        
+        # Only ask for name and assigned agent
+        task['name'] = get_validated_input(
+            "What's the name of this task from your CrewAI project? (snake_case)", 
+            min_length=3, 
+            snake_case=True
+        )
+        
+        task['description'] = "# Replace with your CrewAI task's description:\n# Example: task.description = 'Analyze monthly sales data'"
+        task['expected_output'] = "# Replace with your CrewAI task's expected output:\n# Example: task.expected_output = 'A comprehensive sales analysis report'"
+        
+        task['agent'] = inquirer.list_input(
+            message="Which agent should be assigned this task?",
+            choices=[a['name'] for a in agents],
+        )
+        
+        tasks.append(task)
+        make_task = inquirer.confirm(message="Add another task from your CrewAI project?")
+
+    print('')
+    for x in range(3):
+        time.sleep(0.3)
+        print('.')
+    print('Migration structure created! (ﾉ>ω<)ﾉ :｡･:*:･ﾟ'★,｡･:*:･ﾟ'☆')
+    
+    print("""
+✨ Next Steps:
+1. Navigate to your project directory
+2. Find the generated agent and task files
+3. Replace the placeholder comments with your existing CrewAI implementations
+4. Run your migrated project with `agentstack run`
+    """)
 
     return {'tasks': tasks, 'agents': agents}
 
@@ -461,24 +608,6 @@ def insert_template(
     # os.system("poetry install")
     # os.system("cls" if os.name == "nt" else "clear")
     # TODO: add `agentstack docs` command
-    print(
-        "\n"
-        "🚀 \033[92mAgentStack project generated successfully!\033[0m\n\n"
-        "  Next steps:\n"
-        f"    cd {project_metadata.project_slug}\n\n"
-        "  Make sure you have UV installed:\n"
-        "    pip install uv\n\n"
-        "  Create and activate virtual environment:\n"
-        "    uv venv\n"
-        "    source .venv/bin/activate\n\n"
-        "  Initialize UV and install dependencies:\n"
-        "    uv lock\n"
-        "    uv sync\n"
-        "    uv pip install -e .\n\n"
-        "  Finally, try running your agent with:\n"
-        "    agentstack run\n\n"
-        "  Run `agentstack quickstart` or `agentstack docs` for next steps.\n"
-    )
 
 
 def export_template(output_filename: str):

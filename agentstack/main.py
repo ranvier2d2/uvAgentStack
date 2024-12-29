@@ -59,6 +59,7 @@ def main():
     )
     init_parser.add_argument("slug_name", nargs="?", help="The directory name to place the project in")
     init_parser.add_argument("--wizard", "-w", action="store_true", help="Use the setup wizard")
+    init_parser.add_argument("--migratecrew", "-m", action="store_true", help="Migrate from an existing CrewAI project")
     init_parser.add_argument("--template", "-t", help="Agent template to use")
 
     # 'run' command
@@ -166,7 +167,7 @@ def main():
         elif args.command in ["templates"]:
             webbrowser.open("https://docs.agentstack.sh/quickstart")
         elif args.command in ["init", "i"]:
-            init_project_builder(args.slug_name, args.template, args.wizard)
+            init_project_builder(args.slug_name, args.template, args.wizard, args.migratecrew)
         elif args.command in ["run", "r"]:
             run_project(command=args.function, debug=args.debug, cli_args=extra_args)
         elif args.command in ['generate', 'g']:
