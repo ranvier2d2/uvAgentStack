@@ -145,12 +145,7 @@ def init_project_builder(
         pass
 
     # Get the path to our custom AgentStack installation
-    agentstack_path = "/Users/bastiannisnaciovenegasarevalo/uvAsTackCloneT-2/actualCustomRepo/uvAgentStack"
-
-    # Add tools if specified
-    if tools:
-        for tool_data in tools:
-            generation.add_tool(tool_data['name'], agents=tool_data['agents'])
+    agentstack_path = "/Users/bastiannisnaciovenegasarevalo/AgentStackwoSpacesv2short/AgentStack"
 
     print(
         "\n"
@@ -170,7 +165,7 @@ def init_project_builder(
             "    source .venv/bin/activate\n\n"
             "3. Install dependencies:\n"
             f"    uv pip install -e {agentstack_path}\n"
-            "    uv pip install -e .\n"
+            "    uv sync  # This will install project dependencies from pyproject.toml\n"
         )
     else:
         print(
@@ -182,7 +177,7 @@ def init_project_builder(
             "    source .venv/bin/activate\n\n"
             "3. Install dependencies:\n"
             f"    uv pip install -e {agentstack_path}\n"
-            "    uv pip install -e .\n"
+            "    uv sync  # This will install project dependencies from pyproject.toml\n"
         )
 
     if not has_uv:
