@@ -155,63 +155,63 @@ def init_project_builder(
 
     print(
         "\n"
-        "🚀 \033[92mAgentStack project generated successfully!\033[0m\n\n"
+        "AgentStack project generated successfully!\n\n"
         "  Next steps:\n"
         f"    cd {project_details['name']}\n\n"
     )
 
     if in_venv and has_uv:
         # If we're in a venv and have UV, automatically handle dependencies
-        print("📦 Virtual environment and UV detected! Setting up dependencies automatically...")
+        print("Virtual environment and UV detected! Setting up dependencies automatically...")
         os.chdir(project_details['name'])
         try:
             subprocess.run(["uv", "lock"], check=True)
             subprocess.run(["uv", "sync"], check=True)
             os.chdir('..')
-            print("✨ Dependencies installed successfully in your current virtual environment!\n")
+            print("Dependencies installed successfully in your current virtual environment!\n")
         except subprocess.CalledProcessError:
             os.chdir('..')
-            print("❌ Failed to install dependencies. You may need to create a new virtual environment:\n"
+            print("Failed to install dependencies. You may need to create a new virtual environment:\n"
                   "    uv venv\n"
                   "    source .venv/bin/activate\n"
                   "    uv lock\n"
                   "    uv sync\n")
     elif in_conda:
         print(
-            "  📦 Conda environment detected!\n"
-            "  You can use UV directly in your conda environment:\n"
+            "Conda environment detected!\n"
+            "You can use UV directly in your conda environment:\n"
             "    pip install uv\n"
             "    uv lock\n"
             "    uv sync\n\n"
         )
     elif in_venv:
         print(
-            "  📦 Virtual environment detected!\n"
-            "  Install UV to handle dependencies:\n"
+            "Virtual environment detected!\n"
+            "Install UV to handle dependencies:\n"
             "    pip install uv\n"
             "    uv lock\n"
             "    uv sync\n\n"
         )
     else:
         print(
-            "  Make sure you have UV installed. This handles the project's dependencies:\n"
+            "Make sure you have UV installed. This handles the project's dependencies:\n"
             "    pip install uv\n\n"
-            "  Create and activate virtual environment:\n"
+            "Create and activate virtual environment:\n"
             "    uv venv\n"
             "    source .venv/bin/activate\n\n"
-            "  Initialize UV and install dependencies:\n"
+            "Initialize UV and install dependencies:\n"
             "    uv lock\n"
             "    uv sync\n"
         )
 
     print(
-        "  You can create a new agent with:\n"
+        "You can create a new agent with:\n"
         "    agentstack generate agent <agent_name>\n\n"
-        "  You can create a new task with:\n"
+        "You can create a new task with:\n"
         "    agentstack generate task <task_name>\n\n"
-        "  Finally, try running your agent with:\n"
+        "Finally, try running your agent with:\n"
         "    agentstack run\n\n"
-        "  Run `agentstack quickstart` or `agentstack docs` for next steps.\n"
+        "Run `agentstack quickstart` or `agentstack docs` for next steps.\n"
     )
 
 
@@ -359,7 +359,7 @@ def ask_design() -> dict:
     print(title)
 
     print("""
-🪄 Welcome to the agent builder wWzard!! 🪄
+Welcome to the agent builder wizard!!
 
 First we need to create the agents that will work together to accomplish tasks:
     """)
@@ -377,7 +377,7 @@ First we need to create the agents that will work together to accomplish tasks:
     for x in range(3):
         time.sleep(0.3)
         print('.')
-    print('Boom! We made some agents (ﾉ>ω<)ﾉ :｡･:*:･ﾟ’★,｡･:*:･ﾟ’☆')
+    print('Agents created!')
     time.sleep(0.5)
     print('')
     print('Now lets make some tasks for the agents to accomplish!')
@@ -396,7 +396,7 @@ First we need to create the agents that will work together to accomplish tasks:
     for x in range(3):
         time.sleep(0.3)
         print('.')
-    print('Let there be tasks (ノ ˘_˘)ノ　ζ|||ζ　ζ|||ζ　ζ|||ζ')
+    print('Tasks created!')
 
     return {'tasks': tasks, 'agents': agents}
 
@@ -407,7 +407,7 @@ def ask_migrate_crew() -> dict:
     print(title)
 
     print("""
-🚀 Welcome to the CrewAI Migration Wizard! 
+Welcome to the CrewAI Migration Wizard! 
 
 This wizard will help you migrate your existing CrewAI project to AgentStack.
 We'll create placeholders for your agents and tasks - you'll just need to fill in your existing implementations.
@@ -439,7 +439,7 @@ We'll create placeholders for your agents and tasks - you'll just need to fill i
     for x in range(3):
         time.sleep(0.3)
         print('.')
-    print('Great! Agents structure created! Now for the tasks...')
+    print('Agents structure created!')
     print('')
 
     make_task = True
@@ -471,10 +471,10 @@ We'll create placeholders for your agents and tasks - you'll just need to fill i
     for x in range(3):
         time.sleep(0.3)
         print('.')
-    print('Migration structure created! (ﾉ>ω<)ﾉ :｡･:*:･ﾟ'★,｡･:*:･ﾟ'☆')
+    print('Migration structure created!')
     
     print("""
-✨ Next Steps:
+Next Steps:
 1. Navigate to your project directory
 2. Find the generated agent and task files
 3. Replace the placeholder comments with your existing CrewAI implementations
