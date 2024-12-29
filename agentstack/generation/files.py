@@ -12,6 +12,7 @@ from agentstack import conf
 
 ENV_FILENAME = ".env"
 PYPROJECT_FILENAME = "pyproject.toml"
+UV_FILENAME = "pyproject.toml"
 
 
 class EnvFile:
@@ -100,8 +101,6 @@ class ProjectFile:
     """
     Interface for interacting with pyproject.toml files inside of a project directory.
     This class is read-only and does not support writing changes back to the file.
-    We expose project metadata as properties to support migration to other formats
-    in the future.
     """
 
     _data: dict
@@ -112,10 +111,50 @@ class ProjectFile:
 
     @property
     def project_metadata(self) -> dict:
+        """Get project metadata from UV configuration."""
         try:
-            return self._data['tool']['poetry']
+            return self._data['tool']['uv']
         except KeyError:
-            raise KeyError("No poetry metadata found in pyproject.toml.")
+            raise KeyError("No UV metadata found in pyproject.toml.")
+
+    @property
+    def project_name(self) -> str:
+        return self.project_metadata.get('name', '')
+
+    @property
+    def project_version(self) -> str:
+        return self.project_metadata.get('version', '')
+
+    @property
+    def project_description(self) -> str:
+        return self.project_metadata.get('description', '')
+
+    def read(self):
+        if os.path.exists(conf.PATH / self._filename):
+            with open(conf.PATH / self._filename, 'rb') as f:
+                self._data = tomllib.load(f)
+        else:
+            raise FileNotFoundError(f"File {conf.PATH / self._filename} does not exist.")
+
+
+class UVProjectFile:
+    """
+    Interface for interacting with pyproject.toml files for UV configuration.
+    This class is read-only and does not support writing changes back to the file.
+    """
+
+    _data: dict
+
+    def __init__(self, filename: str = UV_FILENAME):
+        self._filename = filename
+        self.read()
+
+    @property
+    def project_metadata(self) -> dict:
+        try:
+            return self._data['tool']['uv']
+        except KeyError:
+            raise KeyError("No UV metadata found in pyproject.toml.")
 
     @property
     def project_name(self) -> str:

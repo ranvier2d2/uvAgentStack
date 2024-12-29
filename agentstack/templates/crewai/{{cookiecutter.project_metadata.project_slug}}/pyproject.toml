@@ -1,14 +1,13 @@
-[tool.poetry]
+[tool.uv]
 name = "{{cookiecutter.project_metadata.project_name}}"
 version = "{{cookiecutter.project_metadata.version}}"
 description = "{{cookiecutter.project_metadata.description}}"
 authors = ["{{cookiecutter.project_metadata.author_name}}"]
 license = "{{cookiecutter.project_metadata.license}}"
-package-mode = false
 
-[tool.poetry.dependencies]
+[tool.uv.dependencies]
 python = ">=3.10,<=3.13"
-agentstack = {extras = ["{{cookiecutter.framework}}"], version="{{cookiecutter.project_metadata.agentstack_version}}"}
+agentstack = {version = "{{cookiecutter.project_metadata.agentstack_version}}", extras = ["{{cookiecutter.framework}}"]}
 
 [project.scripts]
 {{cookiecutter.project_metadata.project_name}} = "{{cookiecutter.project_metadata.project_name}}.main:run"
